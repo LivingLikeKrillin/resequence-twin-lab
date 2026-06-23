@@ -1,0 +1,66 @@
+{
+  "seed" : 2024,
+  "lanes" : [ {
+    "id" : "L1",
+    "cap" : 1
+  }, {
+    "id" : "L2",
+    "cap" : 1
+  }, {
+    "id" : "L3",
+    "cap" : 1
+  } ],
+  "bodies" : [ {
+    "id" : "BODY-00000",
+    "color" : "RED",
+    "dueDateSeq" : 4
+  }, {
+    "id" : "BODY-00001",
+    "color" : "RED",
+    "dueDateSeq" : 2
+  }, {
+    "id" : "BODY-00002",
+    "color" : "RED",
+    "dueDateSeq" : 11
+  }, {
+    "id" : "BODY-00003",
+    "color" : "RED",
+    "dueDateSeq" : 7
+  }, {
+    "id" : "BODY-00004",
+    "color" : "WHITE",
+    "dueDateSeq" : 1
+  }, {
+    "id" : "BODY-00005",
+    "color" : "WHITE",
+    "dueDateSeq" : 0
+  }, {
+    "id" : "BODY-00006",
+    "color" : "WHITE",
+    "dueDateSeq" : 5
+  }, {
+    "id" : "BODY-00007",
+    "color" : "WHITE",
+    "dueDateSeq" : 3
+  }, {
+    "id" : "BODY-00008",
+    "color" : "WHITE",
+    "dueDateSeq" : 6
+  }, {
+    "id" : "BODY-00009",
+    "color" : "SILVER",
+    "dueDateSeq" : 9
+  }, {
+    "id" : "BODY-00010",
+    "color" : "SILVER",
+    "dueDateSeq" : 8
+  }, {
+    "id" : "BODY-00011",
+    "color" : "SILVER",
+    "dueDateSeq" : 10
+  } ],
+  "heuristic" : {
+    "colorChanges" : 5,
+    "dueDateDeviation" : 2.0
+  }
+}

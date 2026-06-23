@@ -1,0 +1,219 @@
+# resequence-twin — Docker Compose: Eclipse Ditto · Kafka (KRaft) · Prometheus · Grafana
+#
+# Eclipse Ditto 3.x is multi-container (Pekko cluster).
+# Single-node setup: all services register the DNS alias "ditto-cluster".
+# Pekko bootstrap resolves that alias → each service finds itself → single-member cluster.
+# Ref: https://github.com/eclipse-ditto/ditto/blob/master/deployment/docker/docker-compose.yml
+#
+# Host port remaps (existing services on this machine):
+#   Kafka:   19092 → container:9092  (carry-kafka-1 holds 9092)
+#   Ditto:   18080 → container:8080  (pfplay-local-app-1 holds 8080)
+#   Grafana: 3001  → container:3000  (another service holds 3000)
+
+services:
+
+  # ── MongoDB (Ditto backend) ───────────────────────────────────────────────────
+  mongodb:
+    image: mongo:6.0.14
+    restart: unless-stopped
+    networks: [rtw]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Eclipse Ditto services ───────────────────────────────────────────────────
+  # All five services share the "ditto-cluster" DNS alias on the rtw network.
+  # Pekko cluster bootstrap resolves that alias; in single-node mode each service
+  # forms a 1-member cluster.
+  # Healthcheck: port 7626 is Pekko Management (alive endpoint).
+  # start_period: 120s — JVM + cluster formation takes up to 2 minutes.
+
+  ditto-policies:
+    image: eclipse/ditto-policies:3.5.5
+    restart: unless-stopped
+    depends_on:
+      mongodb: {condition: service_healthy}
+    networks:
+      rtw:
+        aliases: [ditto-cluster]
+    environment:
+      - MONGO_DB_HOSTNAME=mongodb
+      - JAVA_TOOL_OPTIONS=-XX:ActiveProcessorCount=2 -XX:+ExitOnOutOfMemoryError -XX:+UseContainerSupport -Xss512k -XX:MaxRAMPercentage=50 -XX:+UseG1GC -Dpekko.coordinated-shutdown.exit-jvm=on -Dpekko.cluster.shutdown-after-unsuccessful-join-seed-nodes=180s -Dpekko.cluster.failure-detector.threshold=15.0 -Dpekko.cluster.failure-detector.expected-response-after=10s -Dpekko.cluster.failure-detector.acceptable-heartbeat-pause=20s -Dpekko.cluster.downing-provider-class=
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://`hostname`:7626/alive || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 4
+      start_period: 120s
+
+  ditto-things:
+    image: eclipse/ditto-things:3.5.5
+    restart: unless-stopped
+    depends_on:
+      mongodb: {condition: service_healthy}
+    networks:
+      rtw:
+        aliases: [ditto-cluster]
+    environment:
+      - MONGO_DB_HOSTNAME=mongodb
+      - JAVA_TOOL_OPTIONS=-XX:ActiveProcessorCount=2 -XX:+ExitOnOutOfMemoryError -XX:+UseContainerSupport -Xss512k -XX:MaxRAMPercentage=50 -XX:+UseG1GC -Dpekko.coordinated-shutdown.exit-jvm=on -Dpekko.cluster.shutdown-after-unsuccessful-join-seed-nodes=180s -Dpekko.cluster.failure-detector.threshold=15.0 -Dpekko.cluster.failure-detector.expected-response-after=10s -Dpekko.cluster.failure-detector.acceptable-heartbeat-pause=20s -Dpekko.cluster.downing-provider-class=
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://`hostname`:7626/alive || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 4
+      start_period: 120s
+
+  ditto-things-search:
+    image: eclipse/ditto-things-search:3.5.5
+    restart: unless-stopped
+    depends_on:
+      mongodb: {condition: service_healthy}
+    networks:
+      rtw:
+        aliases: [ditto-cluster]
+    environment:
+      - MONGO_DB_HOSTNAME=mongodb
+      - JAVA_TOOL_OPTIONS=-XX:ActiveProcessorCount=2 -XX:+ExitOnOutOfMemoryError -XX:+UseContainerSupport -Xss512k -XX:MaxRAMPercentage=50 -XX:+UseG1GC -Dpekko.coordinated-shutdown.exit-jvm=on -Dpekko.cluster.shutdown-after-unsuccessful-join-seed-nodes=180s -Dpekko.cluster.failure-detector.threshold=15.0 -Dpekko.cluster.failure-detector.expected-response-after=10s -Dpekko.cluster.failure-detector.acceptable-heartbeat-pause=20s -Dpekko.cluster.downing-provider-class=
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://`hostname`:7626/alive || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 4
+      start_period: 120s
+
+  ditto-connectivity:
+    image: eclipse/ditto-connectivity:3.5.5
+    restart: unless-stopped
+    depends_on:
+      mongodb: {condition: service_healthy}
+    networks:
+      rtw:
+        aliases: [ditto-cluster]
+    environment:
+      - MONGO_DB_HOSTNAME=mongodb
+      - JAVA_TOOL_OPTIONS=-XX:ActiveProcessorCount=2 -XX:+ExitOnOutOfMemoryError -XX:+UseContainerSupport -Xss512k -XX:MaxRAMPercentage=50 -XX:+UseG1GC -Dpekko.coordinated-shutdown.exit-jvm=on -Dpekko.cluster.shutdown-after-unsuccessful-join-seed-nodes=180s -Dpekko.cluster.failure-detector.threshold=15.0 -Dpekko.cluster.failure-detector.expected-response-after=10s -Dpekko.cluster.failure-detector.acceptable-heartbeat-pause=20s -Dpekko.cluster.downing-provider-class=
+    mem_limit: 768m
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://`hostname`:7626/alive || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 4
+      start_period: 120s
+
+  ditto-gateway:
+    image: eclipse/ditto-gateway:3.5.5
+    restart: unless-stopped
+    depends_on:
+      mongodb: {condition: service_healthy}
+    networks:
+      rtw:
+        aliases: [ditto-cluster]
+    ports:
+      - "18080:8080"  # host 8080 occupied by pfplay; access Ditto at http://localhost:18080
+    environment:
+      # gateway does NOT connect to MongoDB directly
+      - JAVA_TOOL_OPTIONS=-XX:ActiveProcessorCount=2 -XX:+ExitOnOutOfMemoryError -XX:+UseContainerSupport -Xss512k -XX:MaxRAMPercentage=50 -XX:+UseG1GC -Dpekko.coordinated-shutdown.exit-jvm=on -Dpekko.cluster.shutdown-after-unsuccessful-join-seed-nodes=180s -Dpekko.cluster.failure-detector.threshold=15.0 -Dpekko.cluster.failure-detector.expected-response-after=10s -Dpekko.cluster.failure-detector.acceptable-heartbeat-pause=20s -Dpekko.cluster.downing-provider-class=
+      - ENABLE_PRE_AUTHENTICATION=true
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://`hostname`:8080/status/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 8
+      start_period: 150s
+
+  # ── Kafka — single-node KRaft (no Zookeeper) ─────────────────────────────────
+  # apache/kafka:3.7.0 (official Apache image — bitnami unavailable on this registry)
+  # KRaft mode: combined broker+controller, no Zookeeper.
+  kafka:
+    image: apache/kafka:3.7.0
+    restart: unless-stopped
+    networks: [rtw]
+    ports:
+      - "19092:19092"  # host listener for external clients (advertised as localhost:19092)
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,PLAINTEXT_HOST://:19092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:19092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_LOG_DIRS=/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    restart: unless-stopped
+    networks: [rtw]
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.0.0
+    restart: unless-stopped
+    networks: [rtw]
+    ports:
+      - "3001:3000"  # host 3000 is occupied; access Grafana at http://localhost:3001
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  rtw:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  kafka_data:
+  prometheus_data:
+  grafana_data:

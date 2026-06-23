@@ -1,0 +1,88 @@
+# Automotive assembly line layout — declarative graph for resequence-twin sim
+# Profile: auto (car body VIN as Unit, cells/stations/conveyors/AGVs as Resources)
+#
+# Graph topology (linear with parallel branch):
+#   LOAD → CELL-A → CELL-B → CELL-C → UNLOAD
+#                       ↕
+#                    CELL-B2  (parallel/bypass cell)
+# AGV-1 is a transport resource linking CELL-A→CELL-B and CELL-B→CELL-C.
+
+resources:
+  - id: "rtw:res:LOAD"
+    type: "station"
+    capacity: 2
+    graph_coord: [0, 0]
+
+  - id: "rtw:res:CELL-A"
+    type: "cell"
+    capacity: 1
+    graph_coord: [1, 0]
+
+  - id: "rtw:res:CELL-B"
+    type: "cell"
+    capacity: 1
+    graph_coord: [2, 0]
+
+  - id: "rtw:res:CELL-B2"
+    type: "cell"
+    capacity: 1
+    graph_coord: [2, 1]
+
+  - id: "rtw:res:CELL-C"
+    type: "cell"
+    capacity: 1
+    graph_coord: [3, 0]
+
+  - id: "rtw:res:UNLOAD"
+    type: "station"
+    capacity: 2
+    graph_coord: [4, 0]
+
+  - id: "rtw:res:AGV-1"
+    type: "agv"
+    capacity: 1
+    graph_coord: [2, -1]
+
+edges:
+  - from: "rtw:res:LOAD"
+    to: "rtw:res:CELL-A"
+    weight: 1.0
+    transport: "rtw:res:AGV-1"
+
+  - from: "rtw:res:CELL-A"
+    to: "rtw:res:CELL-B"
+    weight: 1.0
+    transport: "rtw:res:AGV-1"
+
+  - from: "rtw:res:CELL-A"
+    to: "rtw:res:CELL-B2"
+    weight: 1.5
+    transport: "rtw:res:AGV-1"
+
+  - from: "rtw:res:CELL-B"
+    to: "rtw:res:CELL-C"
+    weight: 1.0
+    transport: "rtw:res:AGV-1"
+
+  - from: "rtw:res:CELL-B2"
+    to: "rtw:res:CELL-C"
+    weight: 1.5
+    transport: "rtw:res:AGV-1"
+
+  - from: "rtw:res:CELL-C"
+    to: "rtw:res:UNLOAD"
+    weight: 1.0
+    transport: "rtw:res:AGV-1"
+
+units:
+  count: 3
+  id_prefix: "rtw:unit:VIN"
+  type: "car-body"
+
+simulation:
+  # Processing time per cell (seconds of SimPy time)
+  process_time_per_resource: 10.0
+  # Transit time per edge (seconds)
+  transit_time_per_edge: 2.0
+  # Total sim time
+  total_time: 200.0

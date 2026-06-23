@@ -1,0 +1,12 @@
+[project]
+name = "resequence-twin-solver"
+version = "0.1.0"
+description = "Offline CP-SAT optimality-gap oracle for the resequence-twin PBS resequencing heuristic"
+requires-python = ">=3.11"
+dependencies = ["ortools>=9.11"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

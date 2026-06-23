@@ -1,0 +1,61 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.env
+
+# Logs
+*.log
+logs/
+
+# Grafana provisioning secrets
+grafana/data/
+
+# Generated visualization artifacts (regenerate via viz/)
+*.usda
+*.usd
+*.usdc
+*.gif
+/trajectory*.json
+# ...but keep the two committed README demo GIFs (curated demo assets, not transient renders)
+!docs/assets/pbs_twin_demo.gif
+!docs/assets/pbs_compare_demo.gif
+
+# solver package — separate venv + caches
+solver/.venv/
+solver/**/__pycache__/
