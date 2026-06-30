@@ -8,7 +8,8 @@ class DriftConfigTest {
     @Test
     fun `sim source selection yields simulated adapters seeded from pbs-lanes`() {
         val cfg = DriftConfig(lanesSpec = "L1:10,L2:8", source = "sim",
-            opcuaEndpoint = "opc.tcp://unused")
+            opcuaEndpoint = "opc.tcp://unused",
+            recipeEnabled = false, recipeCanonicalPath = "", recipeEndpointOverride = "")
         val configSource = cfg.liveConfigSource()
         assertThat(configSource).isInstanceOf(SimulatedConfigSource::class.java)
         // seeded from pbs.lanes: L1=10, L2=8, no blocked
@@ -20,7 +21,8 @@ class DriftConfigTest {
     @Test
     fun `opcua source selection yields OPC-UA adapters`() {
         val cfg = DriftConfig(lanesSpec = "L1:10,L2:10", source = "opcua",
-            opcuaEndpoint = "opc.tcp://localhost:4840")
+            opcuaEndpoint = "opc.tcp://localhost:4840",
+            recipeEnabled = false, recipeCanonicalPath = "", recipeEndpointOverride = "")
         // OPC-UA adapters connect lazily, so constructing them here does NOT need a live server.
         assertThat(cfg.liveConfigSource()).isInstanceOf(OpcUaConfigSource::class.java)
         assertThat(cfg.liveTelemetrySource()).isInstanceOf(OpcUaTelemetrySource::class.java)

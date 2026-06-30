@@ -18,6 +18,7 @@ data class DriftReport(
     @field:JsonProperty("observed")               val observed: ObservedConfig?,
     @field:JsonProperty("configFindings")         val configFindings: List<ConfigDriftFinding>,
     @field:JsonProperty("behavioralFindings")     val behavioralFindings: List<BehavioralDriftFinding>,
+    @field:JsonProperty("setpointFindings")       val setpointFindings: List<SetpointDriftFinding>,
     @field:JsonProperty("reconciliationProposals") val reconciliationProposals: List<ReconciliationProposal>,
 ) {
     companion object {
@@ -27,6 +28,7 @@ data class DriftReport(
             return DriftReport(env.synthetic, env.disclaimer, sourceAvailable = false,
                 baseline = null, observed = null,
                 configFindings = emptyList(), behavioralFindings = emptyList(),
+                setpointFindings = emptyList(),
                 reconciliationProposals = emptyList())
         }
 
@@ -36,10 +38,12 @@ data class DriftReport(
             observed: ObservedConfig?,
             configFindings: List<ConfigDriftFinding>,
             behavioralFindings: List<BehavioralDriftFinding>,
+            setpointFindings: List<SetpointDriftFinding> = emptyList(),
         ): DriftReport {
             val env = AdvisoryEnvelope.standard()
             return DriftReport(env.synthetic, env.disclaimer, sourceAvailable, baseline, observed,
-                configFindings, behavioralFindings, configFindings.map { it.proposal })
+                configFindings, behavioralFindings, setpointFindings,
+                configFindings.map { it.proposal } + setpointFindings.map { it.proposal })
         }
     }
 }

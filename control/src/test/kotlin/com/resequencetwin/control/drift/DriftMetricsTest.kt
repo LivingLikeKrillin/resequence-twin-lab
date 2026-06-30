@@ -15,7 +15,7 @@ class DriftMetricsTest {
     fun `gauges expose config finding and behavioral breach counts from the monitor`() {
         val cfg = SimulatedConfigSource(baselineConfig())
         val monitor = DriftMonitor(LivePbsProcessor(lanes), cfg,
-            SimulatedTelemetrySource(ObservedKpi(0, 0, 0)),
+            SimulatedTelemetrySource(ObservedKpi(0, 0, 0)), DisabledSetpointDriftDetector,
             enabled = true, ewmaAlpha = 0.5, residualThreshold = 1.0)
 
         val registry = SimpleMeterRegistry()

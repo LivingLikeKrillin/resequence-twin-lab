@@ -30,6 +30,7 @@ class DriftMonitor(
     private val processor: LivePbsProcessor,
     private val configSource: LiveConfigSource,
     private val telemetrySource: LiveTelemetrySource,
+    private val setpointDetector: SetpointDriftDetector,
     @Value("\${pbs.drift.enabled:true}") private val enabled: Boolean,
     @Value("\${pbs.drift.ewma-alpha:0.3}") ewmaAlpha: Double,
     @Value("\${pbs.drift.residual-threshold:2.0}") residualThreshold: Double,
@@ -64,6 +65,7 @@ class DriftMonitor(
     @Scheduled(fixedDelayString = "\${pbs.drift.interval-ms:1000}")
     fun tick() {
         if (!enabled) return
+        val setpointFindings = setpointDetector.detect()
         val base = baseline ?: try {
             captureBaseline()
         } catch (e: Exception) {
@@ -101,7 +103,8 @@ class DriftMonitor(
         )
 
         latestReport.set(DriftReport.of(sourceAvailable = true, baseline = base, observed = observedConfig,
-            configFindings = configFindings, behavioralFindings = behavioral))
+            configFindings = configFindings, behavioralFindings = behavioral,
+            setpointFindings = setpointFindings))
     }
 
     companion object {
