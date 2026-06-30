@@ -15,7 +15,8 @@ class DriftMonitorTest {
         processor: LivePbsProcessor,
         cfg: SimulatedConfigSource,
         tel: SimulatedTelemetrySource,
-    ) = DriftMonitor(processor, cfg, tel, enabled = true, ewmaAlpha = 0.5, residualThreshold = 1.0)
+    ) = DriftMonitor(processor, cfg, tel, DisabledSetpointDriftDetector,
+        enabled = true, ewmaAlpha = 0.5, residualThreshold = 1.0)
 
     private fun baselineConfig() =
         ObservedConfig(lanes = mapOf("L1" to 10, "L2" to 10, "L3" to 10), blocked = emptySet())
@@ -24,7 +25,7 @@ class DriftMonitorTest {
     fun `disabled monitor never mutates the report on tick`() {
         val proc = LivePbsProcessor(lanes)
         val m = DriftMonitor(proc, SimulatedConfigSource(baselineConfig()),
-            SimulatedTelemetrySource(ObservedKpi(0, 0, 0)),
+            SimulatedTelemetrySource(ObservedKpi(0, 0, 0)), DisabledSetpointDriftDetector,
             enabled = false, ewmaAlpha = 0.5, residualThreshold = 1.0)
         m.tick()
         assertThat(m.currentReport()).isEqualTo(DriftReport.empty())
@@ -101,7 +102,7 @@ class DriftMonitorTest {
                 if (fail) throw RuntimeException("source down") else baselineConfig()
         }
         val m = DriftMonitor(LivePbsProcessor(lanes), throwing,
-            SimulatedTelemetrySource(ObservedKpi(0, 0, 0)),
+            SimulatedTelemetrySource(ObservedKpi(0, 0, 0)), DisabledSetpointDriftDetector,
             enabled = true, ewmaAlpha = 0.5, residualThreshold = 1.0)
         m.tick()                       // baseline captured
         throwing.fail = true

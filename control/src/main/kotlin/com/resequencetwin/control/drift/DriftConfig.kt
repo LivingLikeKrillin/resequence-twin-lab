@@ -23,6 +23,9 @@ class DriftConfig(
     @Value("\${pbs.lanes:L1:10,L2:10,L3:10}") private val lanesSpec: String,
     @Value("\${pbs.drift.source:sim}") private val source: String,
     @Value("\${pbs.drift.opcua.endpoint:opc.tcp://localhost:4840}") private val opcuaEndpoint: String,
+    @Value("\${pbs.drift.recipe.enabled:false}") private val recipeEnabled: Boolean,
+    @Value("\${pbs.drift.recipe.canonical-path:}") private val recipeCanonicalPath: String,
+    @Value("\${pbs.drift.recipe.opcua.endpoint:}") private val recipeEndpointOverride: String,
 ) {
     private fun seedConfig(): ObservedConfig {
         val lanes = parseLaneTopology(lanesSpec).associate { it.id to it.capacity }
@@ -41,5 +44,14 @@ class DriftConfig(
         "sim"   -> SimulatedTelemetrySource(ObservedKpi(0, 0, 0))
         "opcua" -> OpcUaTelemetrySource(opcuaEndpoint)
         else    -> throw IllegalStateException("Unsupported pbs.drift.source='$source' (expected 'sim' or 'opcua')")
+    }
+
+    @Bean
+    fun setpointDriftDetector(): SetpointDriftDetector {
+        if (!recipeEnabled) return DisabledSetpointDriftDetector
+        require(recipeCanonicalPath.isNotBlank()) { "pbs.drift.recipe.enabled=true requires pbs.drift.recipe.canonical-path" }
+        val loaded = CanonicalSetpointsFile.load(recipeCanonicalPath)
+        val endpoint = recipeEndpointOverride.ifBlank { loaded.endpoint }
+        return RealSetpointDriftDetector(loaded.setpoints, MiloRecipeSetpointReader(endpoint))
     }
 }
