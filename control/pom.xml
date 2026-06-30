@@ -123,6 +123,11 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <!-- Pin the application main class. The module carries a legacy duplicate main class, so
+               spring-boot:run cannot auto-detect a single candidate; pin the real control app. -->
+          <mainClass>com.resequencetwin.control.ResequenceTwinControlApplicationKt</mainClass>
+        </configuration>
       </plugin>
 
       <!-- Kotlin joint compilation: Kotlin compiles first, then Java compiles against Kotlin output -->
