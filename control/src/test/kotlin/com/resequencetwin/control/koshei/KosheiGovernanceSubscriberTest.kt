@@ -91,4 +91,14 @@ class KosheiGovernanceSubscriberTest {
 
         assertEquals(ReconciliationState.RECONCILING, seen.single().second.state)
     }
+
+    @Test fun `malformed NDATA bytes are dropped without throwing or firing a callback`() {
+        val seen = mutableListOf<Pair<String, ReconciliationAnnotation>>()
+        val sub = KosheiGovernanceSubscriber(edge) { key, ann -> seen += key to ann }
+
+        sub.onMessage(nbirthTopic(), nbirthBytes())
+        sub.onMessage(ndataTopic(), byteArrayOf(1, 2, 3, 4))   // not a valid Sparkplug B payload
+
+        assertTrue(seen.isEmpty())   // decode throw is swallowed (no exception escapes), no callback fired
+    }
 }

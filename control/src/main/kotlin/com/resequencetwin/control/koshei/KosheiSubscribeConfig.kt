@@ -31,19 +31,25 @@ class KosheiSubscribeConfig(
      * namespace `spBv1.0/{group}/+/{edge}` (NBIRTH + NDATA + …) and forwards each message to the host.
      */
     @Bean(destroyMethod = "close")
-    fun kosheiMqttClient(store: ReconciliationStore): MqttClient? {
+    fun kosheiMqttClient(store: ReconciliationStore): AutoCloseable? {
         if (!enabled) return null
         val subscriber = KosheiGovernanceSubscriber(edge) { key, ann -> store.put(key, ann) }
         val client = MqttClient(mqttUrl, "resequence-twin-$group-$edge", MemoryPersistence())
         return try {
             client.connect(MqttConnectOptions().apply {
                 isCleanSession = true
+                // first-cut: auto-reconnect only kicks in AFTER an initial successful connect; if the
+                // broker is down at startup the subscriber stays inert until the app restarts.
                 isAutomaticReconnect = true
             })
             val topicFilter = "spBv1.0/$group/+/$edge"
             client.subscribe(topicFilter, 1) { topic, message -> subscriber.onMessage(topic, message.payload) }
             log.info("koshei governance subscriber connected to {} on {}", mqttUrl, topicFilter)
-            client
+            // Clean shutdown: disconnect BEFORE close (Paho's close() throws if still connected).
+            AutoCloseable {
+                try { if (client.isConnected) client.disconnect() } catch (_: Exception) {}
+                try { client.close() } catch (_: Exception) {}
+            }
         } catch (e: Exception) {
             log.warn("koshei governance subscriber failed to connect to {} (continuing without): {}", mqttUrl, e.toString())
             try { client.close() } catch (_: Exception) {}
