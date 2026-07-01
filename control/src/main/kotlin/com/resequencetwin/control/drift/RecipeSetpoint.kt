@@ -1,5 +1,7 @@
 package com.resequencetwin.control.drift
 
+import com.resequencetwin.control.koshei.ReconciliationAnnotation
+
 /** Machine action tag for a recipe-setpoint reconciliation proposal. */
 const val RECONCILE_SETPOINT = "RECONCILE_SETPOINT"
 
@@ -22,4 +24,6 @@ data class SetpointDriftFinding(
     val observed: Double,
     val breached: Boolean,
     val proposal: ReconciliationProposal,
+    /** Governance lifecycle annotation from koshei's Sparkplug surface; null until an event is seen. */
+    val reconciliation: ReconciliationAnnotation? = null,
 )
