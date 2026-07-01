@@ -29,8 +29,10 @@ class KosheiGovernanceSubscriber(
             val kind = parts.getOrNull(1) ?: return
             if (parts.getOrNull(2)?.let { it != edge } == true) return   // defensive: ignore cross-edge traffic
             when (kind) {
-                "NBIRTH" -> birthSeen = true
-                "NDATA" -> if (birthSeen) applyNdata(bytes)   // ignore NDATA before NBIRTH (host rule)
+                "NBIRTH" -> { birthSeen = true; log.info("koshei NBIRTH received — host ready") }
+                "NDATA" ->
+                    if (birthSeen) applyNdata(bytes)          // ignore NDATA before NBIRTH (host rule)
+                    else log.warn("koshei NDATA ignored — no NBIRTH observed yet (host not initialised)")
             }
         } catch (e: Exception) {
             // A malformed payload must never propagate into the Paho callback thread — Paho would tear
@@ -52,8 +54,8 @@ class KosheiGovernanceSubscriber(
             "RECONCILING" -> ReconciliationState.RECONCILING
             else -> return
         }
-        p.metrics.filter { it.name.startsWith("Setpoint/") }.forEach {
-            onReconciliation(it.name.removePrefix("Setpoint/"), ReconciliationAnnotation(state, runId, at))
-        }
+        val keys = p.metrics.filter { it.name.startsWith("Setpoint/") }.map { it.name.removePrefix("Setpoint/") }
+        log.info("koshei NDATA applied: type={} state={} runId={} setpoints={}", type, state, runId, keys)
+        keys.forEach { onReconciliation(it, ReconciliationAnnotation(state, runId, at)) }
     }
 }
