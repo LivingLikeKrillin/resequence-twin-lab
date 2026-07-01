@@ -1,5 +1,6 @@
 package com.resequencetwin.control.drift
 
+import com.resequencetwin.control.koshei.ReconciliationStore
 import com.resequencetwin.control.stream.LivePbsProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -31,6 +32,9 @@ class DriftMonitor(
     private val configSource: LiveConfigSource,
     private val telemetrySource: LiveTelemetrySource,
     private val setpointDetector: SetpointDriftDetector,
+    // Side-store of koshei governance annotations; nullable so non-subscribe deployments are unaffected.
+    // The KosheiSubscribeConfig bean makes this present by default (subscriber writes it only when enabled).
+    private val reconciliationStore: ReconciliationStore? = null,
     @Value("\${pbs.drift.enabled:true}") private val enabled: Boolean,
     @Value("\${pbs.drift.ewma-alpha:0.3}") ewmaAlpha: Double,
     @Value("\${pbs.drift.residual-threshold:2.0}") residualThreshold: Double,
@@ -65,7 +69,10 @@ class DriftMonitor(
     @Scheduled(fixedDelayString = "\${pbs.drift.interval-ms:1000}")
     fun tick() {
         if (!enabled) return
-        val setpointFindings = setpointDetector.detect()
+        // Merge koshei governance lifecycle annotations onto the freshly-detected (immutable) findings.
+        val setpointFindings = setpointDetector.detect().map { f ->
+            reconciliationStore?.get(f.key)?.let { f.copy(reconciliation = it) } ?: f
+        }
         val base = baseline ?: try {
             captureBaseline()
         } catch (e: Exception) {
