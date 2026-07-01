@@ -75,6 +75,14 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Eclipse Tahu / Sparkplug B — consume koshei's governance Edge Node (NBIRTH/NDATA).
+         Paho MQTT v3 comes transitively via tahu-core; resolves from Maven Central alone. -->
+    <dependency>
+      <groupId>org.eclipse.tahu</groupId>
+      <artifactId>tahu-core</artifactId>
+      <version>1.0.14</version>
+    </dependency>
+
     <!-- Micrometer Prometheus registry — enables /actuator/prometheus endpoint -->
     <dependency>
       <groupId>io.micrometer</groupId>
