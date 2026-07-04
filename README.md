@@ -394,6 +394,37 @@ curl -s http://localhost:8081/actuator/prometheus | grep pbs_drift
 
 ---
 
+## Portfolio integration — governed reconciliation loop
+
+This twin also composes as the **application layer** of a larger OT/IT governance loop, alongside a
+companion durable transaction-governance engine (**koshei**) that owns the *write-back* this project
+refuses to perform. Two integration points were added — both preserving the read-only, detect →
+propose discipline, and both **default-off**, so the standalone PoC is unchanged unless explicitly
+enabled.
+
+**1. Recipe-setpoint drift source** (`drift/`, enable with `pbs.drift.recipe.enabled=true`).
+`MiloRecipeSetpointReader` reads Recipe setpoint nodes from a shared OPC-UA sim and
+`RealSetpointDriftDetector` compares them against the engine's Git-canonical desired contract
+(`CanonicalSetpointsFile` parses `model/recipe-setpoints.yaml`). A setpoint-drift finding and its
+advisory `ReconciliationProposal` surface in the same `GET /api/drift` report as the existing
+config/behavioral drift. Still **detect-only** — the twin never writes the field; the governed
+engine performs the human-gated write-back.
+
+**2. Governance subscriber** (`koshei/KosheiGovernanceSubscriber`). A genuine Sparkplug B **host
+application** that consumes the engine's outbound governance Edge Node with proper host semantics
+(ignore NDATA until an NBIRTH is seen). It maps each `Governance/LastEventType` to a
+`ReconciliationState` and annotates the corresponding drift finding with *which* engine run
+reconciled it — so the twin can show "drift detected → picked up → reconciled" rather than only the
+raw divergence.
+
+The loop reads: the twin **detects** setpoint drift from canonical and **proposes**; the governed
+engine **acts** (human-gated, compensating write-back); the subscriber lets the twin **observe** the
+reconciliation close. The project's core stance is intact — advisory, no write-back — it simply now
+sits inside a loop where a separate, governed actor does the writing. Scope stays synthetic: shared
+sim, PoC file/topic couplings, single node.
+
+---
+
 ## Honesty / Scope
 
 - **Synthetic only** — SimPy-generated colour-batched streams with shuffled JIS due-dates; no live
