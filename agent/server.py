@@ -1,7 +1,7 @@
 """
 resequence-twin agent — MCP read-only advisory server (R4c).
 
-Exposes four tools over the MCP stdio transport:
+Exposes five tools over the MCP stdio transport:
 
   get_kpi(seed, bodies)
       → GET /api/kpi — static-vs-dynamic KPI benchmark.
@@ -12,8 +12,15 @@ Exposes four tools over the MCP stdio transport:
   predict_scramble(seed, bodies, after_releases)
       → GET /api/predict/scramble — ScrambleForecast risk assessment.
 
+  explain_drift()
+      → GET /api/drift — the current drift report (config / behavioral / setpoint
+        findings); each setpoint finding may carry koshei's reconciliation state
+        (RECONCILING / CLEARED / RECONCILING_FAILED). This is where the twin's
+        drift detection meets koshei's governed-reconciliation loop.
+
   search_docs(query, k)
-      → local BM25 retrieval over ADRs + KPI glossary (no network, no API key).
+      → local BM25 retrieval over ADRs + KPI + reconciliation glossary
+        (no network, no API key).
 
 Design notes
 ------------
@@ -58,6 +65,7 @@ REGISTERED_TOOLS: list[str] = [
     "get_kpi",
     "explain_release",
     "predict_scramble",
+    "explain_drift",
     "search_docs",
 ]
 
@@ -154,6 +162,19 @@ def predict_scramble(
     )
 
 
+def explain_drift(*, client: httpx.Client | None = None) -> dict[str, Any]:
+    """Fetch the current drift report from /api/drift.
+
+    Returns config-drift, behavioral-drift, and setpoint-drift findings. Each
+    setpoint finding may carry a ``reconciliation`` annotation (state
+    RECONCILING / CLEARED / RECONCILING_FAILED, with runId) reflecting koshei's
+    governance lifecycle for that setpoint — so the tool narrates not just
+    "this drifted" but "koshei is/finished/failed reconciling it". /api/drift
+    takes no query parameters.
+    """
+    return _get("/api/drift", {}, client=client)
+
+
 def search_docs(query: str, k: int = 3) -> list[Chunk]:
     """Return the top-k most relevant doc chunks for *query* (local, offline)."""
     return _search_docs(query, k=k)
@@ -192,9 +213,15 @@ def mcp_predict_scramble(
     return predict_scramble(seed=seed, bodies=bodies, after_releases=after_releases)
 
 
+@mcp.tool(name="explain_drift")
+def mcp_explain_drift() -> dict[str, Any]:
+    """Report current drift (config/behavioral/setpoint) + koshei reconciliation state."""
+    return explain_drift()
+
+
 @mcp.tool(name="search_docs")
 def mcp_search_docs(query: str, k: int = 3) -> list[Chunk]:
-    """Search ADRs + KPI glossary locally (offline, no API key needed)."""
+    """Search ADRs + KPI + reconciliation glossary locally (offline, no API key)."""
     return search_docs(query, k=k)
 
 
