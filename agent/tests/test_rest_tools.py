@@ -92,6 +92,31 @@ _PREDICT_STUB = {
     "stabilizationHint": "Release from the least-utilised lane.",
 }
 
+_DRIFT_STUB = {
+    "synthetic": True,
+    "disclaimer": "PoC synthetic data",
+    "baseline": {},
+    "observed": {},
+    "configFindings": [],
+    "behavioralFindings": [],
+    "setpointFindings": [
+        {
+            "key": "recipe.rpmSetpoint",
+            "nodeId": "ns=2;s=Recipe/Rpm",
+            "desired": 1500.0,
+            "observed": 1394.0,
+            "breached": True,
+            "proposal": {"action": "RECONCILE_SETPOINT"},
+            "reconciliation": {
+                "state": "RECONCILING",
+                "runId": "run-abc123",
+                "atMillis": 1000,
+            },
+        }
+    ],
+    "reconciliationProposals": [],
+}
+
 
 # ===========================================================================
 # get_kpi
@@ -269,6 +294,56 @@ def test_predict_scramble_connection_error_returns_error_dict():
         _make_transport(raise_exc=httpx.ConnectError("unreachable"))
     )
     result = server.predict_scramble(client=client)
+    assert "error" in result
+
+
+# ===========================================================================
+# explain_drift
+# ===========================================================================
+
+
+def test_explain_drift_issues_get_request():
+    recorded: list[httpx.Request] = []
+    client = _client(_make_transport(body=_DRIFT_STUB, recorded=recorded))
+    server.explain_drift(client=client)
+    assert len(recorded) == 1
+    assert recorded[0].method == "GET"
+
+
+def test_explain_drift_hits_correct_path():
+    recorded: list[httpx.Request] = []
+    client = _client(_make_transport(body=_DRIFT_STUB, recorded=recorded))
+    server.explain_drift(client=client)
+    assert recorded[0].url.path == "/api/drift"
+
+
+def test_explain_drift_sends_no_query_params():
+    recorded: list[httpx.Request] = []
+    client = _client(_make_transport(body=_DRIFT_STUB, recorded=recorded))
+    server.explain_drift(client=client)
+    assert dict(recorded[0].url.params) == {}
+
+
+def test_explain_drift_returns_parsed_json():
+    client = _client(_make_transport(body=_DRIFT_STUB))
+    result = server.explain_drift(client=client)
+    assert result == _DRIFT_STUB
+    # the reconciliation annotation (the koshei seam) survives the round-trip
+    assert result["setpointFindings"][0]["reconciliation"]["state"] == "RECONCILING"
+
+
+def test_explain_drift_non_200_returns_error_dict():
+    client = _client(_make_transport(status=500, body={"error": "server error"}))
+    result = server.explain_drift(client=client)
+    assert "error" in result
+    assert "500" in result["error"]
+
+
+def test_explain_drift_connection_error_returns_error_dict():
+    client = _client(
+        _make_transport(raise_exc=httpx.ConnectError("unreachable"))
+    )
+    result = server.explain_drift(client=client)
     assert "error" in result
 
 

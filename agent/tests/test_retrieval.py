@@ -141,6 +141,33 @@ def test_lane_utilization_query_surfaces_glossary():
 
 
 # ---------------------------------------------------------------------------
+# Reconciliation glossary (the koshei seam — drift half of the system)
+# ---------------------------------------------------------------------------
+
+
+def test_setpoint_drift_query_surfaces_reconciliation_glossary():
+    """A query about setpoint drift / reconciliation should surface the new glossary."""
+    results = _query("setpoint drift reconciliation koshei desired tolerance")
+    sources = [r["source"] for r in results]
+    assert any("reconciliation-glossary" in s for s in sources), (
+        f"Expected the reconciliation glossary in top results, got sources: {sources}"
+    )
+    all_text = " ".join(r["text"] for r in results).lower()
+    assert "drift" in all_text and "reconcil" in all_text, (
+        f"Expected drift/reconciliation content, got: {all_text[:300]}"
+    )
+
+
+def test_reconciliation_state_query_surfaces_governance_lifecycle():
+    """A query about the reconciliation state must surface the RECONCILING/CLEARED lifecycle."""
+    results = _query("ReconciliationState RECONCILING CLEARED RECONCILING_FAILED runId")
+    all_text = " ".join(r["text"] for r in results)
+    assert "RECONCILING" in all_text and "CLEARED" in all_text, (
+        f"Expected the governance lifecycle states in top results, got: {all_text[:300]}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Determinism
 # ---------------------------------------------------------------------------
 

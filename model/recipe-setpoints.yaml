@@ -1,0 +1,29 @@
+# Canonical recipe-setpoint contract (the Git-owned "desired" state).
+#
+# This is the shared contract between the transaction-governance engine (koshei), which owns
+# and applies this desired state, and this twin, which reads the live OPC-UA values and reports
+# setpoint DRIFT (advisory only — the twin never writes back). Making it a committed file is the
+# point: "apps sit on governed data" means the desired truth is a versioned artifact, not a value
+# hidden in a running system.
+#
+# ⚠ SYNTHETIC PoC DATA — these node ids / values are illustrative for the synthetic PBS simulation,
+# not a real plant recipe. See README "Portfolio integration — governed reconciliation loop".
+#
+# Schema (parsed by control/.../drift/CanonicalSetpointsFile.kt):
+#   endpoint:  OPC-UA endpoint the twin reads the observed values from (String, required)
+#   setpoints: map of <logical key> -> { nodeId, desired, tolerance? }
+#     nodeId    full OPC-UA NodeId of the live value               (String, required)
+#     desired   the Git-canonical desired value                    (Number, required)
+#     tolerance abs deviation tolerated before drift is reported   (Number, optional; default 1.0)
+
+endpoint: "opc.tcp://localhost:48400"
+
+setpoints:
+  recipe.rpmSetpoint:
+    nodeId: "ns=2;s=Recipe/Rpm"
+    desired: 1500.0
+    tolerance: 5.0
+  recipe.tempSetpoint:
+    nodeId: "ns=2;s=Recipe/Temp"
+    desired: 200.0
+    tolerance: 2.0

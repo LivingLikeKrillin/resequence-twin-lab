@@ -2,7 +2,7 @@
 R4c tests — updated from OHT skeleton to PBS tool registry.
 
 Verifies that:
-  - REGISTERED_TOOLS lists exactly the four PBS tool names (3 REST + 1 doc-search)
+  - REGISTERED_TOOLS lists exactly the five PBS tool names (4 REST + 1 doc-search)
   - None of the old OHT names remain
   - list_tools() is read-only (mutating the return value does not affect the registry)
   - The MCP-exposed tool names (via FastMCP) exactly match REGISTERED_TOOLS
@@ -10,16 +10,22 @@ Verifies that:
 
 from server import list_tools, mcp, REGISTERED_TOOLS
 
-_EXPECTED_TOOLS = {"get_kpi", "explain_release", "predict_scramble", "search_docs"}
+_EXPECTED_TOOLS = {
+    "get_kpi",
+    "explain_release",
+    "predict_scramble",
+    "explain_drift",
+    "search_docs",
+}
 
 
 def test_registered_tools_count():
-    """Exactly four MCP tools are registered (3 REST + 1 doc-search)."""
-    assert len(REGISTERED_TOOLS) == 4
+    """Exactly five MCP tools are registered (4 REST + 1 doc-search)."""
+    assert len(REGISTERED_TOOLS) == 5
 
 
 def test_registered_tools_are_pbs_names():
-    """REGISTERED_TOOLS contains all four expected PBS tool names."""
+    """REGISTERED_TOOLS contains all five expected PBS tool names."""
     assert set(REGISTERED_TOOLS) == _EXPECTED_TOOLS
 
 
@@ -36,7 +42,7 @@ def test_no_oht_names_remain():
 
 
 def test_list_tools_returns_expected_names():
-    """list_tools() returns all four PBS tool names."""
+    """list_tools() returns all five PBS tool names."""
     tools = list_tools()
     assert set(tools) == _EXPECTED_TOOLS
 

@@ -88,6 +88,52 @@ _GLOSSARY_SOURCE_PREFIX = "docs/kpi-glossary (inline)"
 
 
 # ---------------------------------------------------------------------------
+# Governed-reconciliation glossary (inline — the koshei seam / drift half of the
+# system, so the advisory agent can ground answers about /api/drift, not just KPIs)
+# ---------------------------------------------------------------------------
+_RECONCILIATION_GLOSSARY_TEXT = """\
+# Governed Reconciliation Glossary
+
+## drift
+Drift is when the live (actual) plant state diverges from the Git-canonical desired state that the
+transaction-governance engine (koshei) owns and applies. This twin is read-only: it DETECTS drift
+and PROPOSES a reconciliation, but never writes back. GET /api/drift returns three finding families:
+config drift (lane capacity / blocked-lane changes vs the expected config), behavioral drift (a KPI
+residual beyond an EWMA threshold), and setpoint drift (a recipe setpoint read from OPC-UA differs
+from the canonical desired by more than its tolerance).
+
+## setpoint drift
+Setpoint drift compares each recipe setpoint's live OPC-UA value against the Git-canonical desired
+value in model/recipe-setpoints.yaml. If abs(observed - desired) > tolerance the twin emits a
+SetpointDriftFinding with a RECONCILE_SETPOINT proposal (advisory only). The canonical desired
+contract is a committed file — that is what "apps sit on governed data" means: the desired truth is
+a versioned artifact, not a value hidden inside a running system.
+
+## RECONCILE_SETPOINT
+RECONCILE_SETPOINT is the machine action tag on a setpoint-drift reconciliation proposal. It names
+what koshei WOULD do to close the gap (re-apply the canonical setpoint). The twin only proposes; a
+human and koshei own the actual governed write. The twin never actuates.
+
+## ReconciliationState
+ReconciliationState is the governance lifecycle annotation the twin learns from koshei's Sparkplug B
+surface (KosheiGovernanceSubscriber, acting as a host application). Values: RECONCILING (koshei is
+applying the desired state), CLEARED (reconciliation confirmed, drift resolved), RECONCILING_FAILED
+(koshei's reconciliation run failed). It is merged onto the matching SetpointDriftFinding as the
+reconciliation field, so /api/drift shows not just "this setpoint drifted" but "koshei is / finished
+/ failed reconciling it, run <runId>".
+
+## governed reconciliation loop
+The loop is detect -> propose -> act -> observe: the twin detects drift against the Git-canonical
+desired and proposes a reconciliation; koshei applies the governed write and emits its lifecycle as
+Sparkplug B governance events; the twin observes those events and annotates the finding with the
+ReconciliationState. The twin's half is advisory and read-only; koshei owns the authority to write.
+This is a synthetic PoC of the seam, not a production control loop.
+"""
+
+_RECONCILIATION_SOURCE_PREFIX = "docs/reconciliation-glossary (inline)"
+
+
+# ---------------------------------------------------------------------------
 # Chunk type
 # ---------------------------------------------------------------------------
 
@@ -146,24 +192,31 @@ def _chunk_markdown(path: Path, source_prefix: str) -> list[Chunk]:
     return chunks
 
 
-def _chunk_glossary() -> list[Chunk]:
-    """Chunk the inline KPI glossary per ## heading.
+def _chunk_glossary(
+    text: str = _GLOSSARY_TEXT,
+    source_prefix: str = _GLOSSARY_SOURCE_PREFIX,
+    top_title: str = "KPI Glossary",
+) -> list[Chunk]:
+    """Chunk an inline glossary per ## heading.
 
-    The bare top-level '# KPI Glossary' heading is NOT emitted as a chunk —
-    it carries no retrievable content and would only add noise to BM25 results.
+    The bare top-level '# <title>' heading is NOT emitted as a chunk — it
+    carries no retrievable content and would only add noise to BM25 results.
+    Parameterised so multiple inline glossaries (KPI, reconciliation) share one
+    chunker.
     """
-    parts = re.split(r"(?m)^(##\s+.+)$", _GLOSSARY_TEXT)
+    top_heading_line = f"# {top_title}"
+    parts = re.split(r"(?m)^(##\s+.+)$", text)
     chunks: list[Chunk] = []
-    current_heading = "KPI Glossary"
+    current_heading = top_title
     buffer: list[str] = []
 
     for part in parts:
         if re.match(r"^##\s+", part):
             content = "".join(buffer).strip()
-            if content and content != "# KPI Glossary":
+            if content and content != top_heading_line:
                 chunks.append(
                     Chunk(
-                        source=f"{_GLOSSARY_SOURCE_PREFIX} > {current_heading}",
+                        source=f"{source_prefix} > {current_heading}",
                         text=" ".join(buffer).strip(),
                     )
                 )
@@ -175,7 +228,7 @@ def _chunk_glossary() -> list[Chunk]:
     if buffer and "".join(buffer).strip():
         chunks.append(
             Chunk(
-                source=f"{_GLOSSARY_SOURCE_PREFIX} > {current_heading}",
+                source=f"{source_prefix} > {current_heading}",
                 text=" ".join(buffer).strip(),
             )
         )
@@ -192,6 +245,13 @@ def _build_corpus() -> list[Chunk]:
     corpus: list[Chunk] = []
     corpus.extend(_chunk_markdown(_ADR_002, "docs/adr/ADR-002-sequencing-solver.md"))
     corpus.extend(_chunk_glossary())
+    corpus.extend(
+        _chunk_glossary(
+            text=_RECONCILIATION_GLOSSARY_TEXT,
+            source_prefix=_RECONCILIATION_SOURCE_PREFIX,
+            top_title="Governed Reconciliation Glossary",
+        )
+    )
     return corpus
 
 
