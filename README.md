@@ -1,5 +1,10 @@
 # resequence-twin-lab — Automotive PBS Resequencing PoC
 
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE)
+![Kotlin](https://img.shields.io/badge/Kotlin-Spring-7F52FF?logo=kotlin&logoColor=white)
+![Python](https://img.shields.io/badge/Python-sim_%2B_agent-3776AB?logo=python&logoColor=white)
+![Status: synthetic-sim PoC](https://img.shields.io/badge/status-synthetic--simulation_PoC-orange)
+
 > **합성 시뮬레이션 기반 PoC.** 실설비·실데이터 없음. 개인 학습용 프로젝트. KPI는 **정적 대비 상대
 > 델타로만** 제시. 커머디티 레이어는 검증된 OSS(SimPy·Eclipse Ditto·Kafka·Prometheus/Grafana) 위에
 > 올리고, **직접 구현은 PBS 다목적 서열 재시퀀싱 정책 + falsifiable 벤치 + 어드바이저리 에이전트
@@ -498,3 +503,7 @@ not hidden caveats.
   real paint-process simulation.
 - **The advisory agent is read-only with a small RAG corpus** (ADR-002 + KPI glossary); there is no
   LLM-output evaluation harness.
+
+## License
+
+[Apache-2.0](LICENSE) — Copyright © 2026 LivingLikeKrillin (livinglikekrillin@gmail.com).
