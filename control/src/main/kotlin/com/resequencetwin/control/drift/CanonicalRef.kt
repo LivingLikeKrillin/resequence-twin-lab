@@ -19,10 +19,18 @@ object CanonicalRef {
         return sha?.takeIf { it.matches(Regex("[0-9a-f]{40}")) }
     }
 
-    private fun git(dir: File, vararg args: String): String? = try {
-        val p = ProcessBuilder(listOf("git", "-C", dir.path) + args).start()
-        val out = p.inputStream.bufferedReader().readText()
-        if (!p.waitFor(10, TimeUnit.SECONDS)) { p.destroy(); null }
-        else if (p.exitValue() == 0) out else null
-    } catch (_: Exception) { null }
+    // stdout drained on a daemon thread so a stalled git can't block past the timeout (readText() would
+    // otherwise return only at process exit, defeating waitFor()); destroyForcibly hard-bounds a hung git.
+    private fun git(dir: File, vararg args: String): String? {
+        return try {
+            val p = ProcessBuilder(listOf("git", "-C", dir.path) + args).redirectErrorStream(true).start()
+            val out = StringBuilder()
+            val reader = Thread {
+                try { p.inputStream.bufferedReader().use { out.append(it.readText()) } } catch (_: Exception) {}
+            }.apply { isDaemon = true; start() }
+            if (!p.waitFor(10, TimeUnit.SECONDS)) { p.destroyForcibly(); return null }
+            reader.join(2000)
+            if (p.exitValue() == 0) out.toString() else null
+        } catch (_: Exception) { null }
+    }
 }
