@@ -52,7 +52,10 @@ class DriftConfig(
         require(recipeCanonicalPath.isNotBlank()) { "pbs.drift.recipe.enabled=true requires pbs.drift.recipe.canonical-path" }
         val loaded = CanonicalSetpointsFile.load(recipeCanonicalPath)
         val endpoint = recipeEndpointOverride.ifBlank { loaded.endpoint }
-        val defRef = CanonicalRef.resolve(recipeCanonicalPath)
-        return RealSetpointDriftDetector(loaded.setpoints, MiloRecipeSetpointReader(endpoint), defRef)
+        val canonicalFile = java.io.File(recipeCanonicalPath)
+        val bytes = canonicalFile.takeIf { it.isFile }?.readBytes()
+        val manifest = canonicalFile.parentFile?.resolve("manifest.json")?.takeIf { it.isFile }
+            ?.let { runCatching { com.fasterxml.jackson.module.kotlin.jacksonObjectMapper().readValue(it, RecipeManifest::class.java) }.getOrNull() }
+        return RealSetpointDriftDetector(loaded.setpoints, MiloRecipeSetpointReader(endpoint), bytes, manifest)
     }
 }

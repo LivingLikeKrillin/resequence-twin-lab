@@ -26,5 +26,7 @@ data class SetpointDriftFinding(
     val proposal: ReconciliationProposal,
     /** Governance lifecycle annotation from koshei's Sparkplug surface; null until an event is seen. */
     val reconciliation: ReconciliationAnnotation? = null,
-    val defRef: String? = null,   // ③ version reference: git SHA of the canonical this desired came from
+    val defRef: String? = null,              // provenance (from manifest) — null when UNVERIFIED
+    val contentSha256: String? = null,       // the hash the TWIN computed — null when UNVERIFIED
+    val provenanceVerified: Boolean = false, // true only when twin's hash == manifest.contentSha256
 )
