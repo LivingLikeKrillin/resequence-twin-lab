@@ -19,6 +19,7 @@ object DisabledSetpointDriftDetector : SetpointDriftDetector {
 class RealSetpointDriftDetector(
     private val setpoints: List<RecipeSetpoint>,
     private val reader: RecipeSetpointReader,
+    private val defRef: String? = null,
 ) : SetpointDriftDetector {
     override fun detect(): List<SetpointDriftFinding> = setpoints.mapNotNull { sp ->
         val observed = reader.read(sp.nodeId) ?: return@mapNotNull null
@@ -30,6 +31,7 @@ class RealSetpointDriftDetector(
                 description = "setpoint '${sp.key}' drifted: observed $observed vs desired ${sp.desired} " +
                     "(tolerance ${sp.tolerance}); reconcile via koshei governed write-back",
             ),
+            defRef = defRef,
         )
     }
 }

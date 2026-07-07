@@ -52,6 +52,7 @@ class DriftConfig(
         require(recipeCanonicalPath.isNotBlank()) { "pbs.drift.recipe.enabled=true requires pbs.drift.recipe.canonical-path" }
         val loaded = CanonicalSetpointsFile.load(recipeCanonicalPath)
         val endpoint = recipeEndpointOverride.ifBlank { loaded.endpoint }
-        return RealSetpointDriftDetector(loaded.setpoints, MiloRecipeSetpointReader(endpoint))
+        val defRef = CanonicalRef.resolve(recipeCanonicalPath)
+        return RealSetpointDriftDetector(loaded.setpoints, MiloRecipeSetpointReader(endpoint), defRef)
     }
 }
