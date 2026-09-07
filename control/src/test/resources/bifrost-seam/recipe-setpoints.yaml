@@ -1,0 +1,3 @@
+endpoint: opc.tcp://localhost:48400
+setpoints:
+  recipe.rpmSetpoint: { nodeId: "ns=2;s=Recipe/Rpm", desired: 1500, tolerance: 1.0 }

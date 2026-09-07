@@ -1,0 +1,9 @@
+{
+  "kind" : "recipe-setpoints",
+  "ref" : "line1",
+  "version" : "1.0.0",
+  "defRef" : "2f517dade360c9a18b7bd8153946ef37b33504bb",
+  "contentSha256" : "7e4a8e186f72b085a8a9a72581f597d6ded18b1e696bc7168a6605da60fd70fd",
+  "sourcePath" : "model/recipe-setpoints.yaml",
+  "publishedAt" : 1783500818386
+}
