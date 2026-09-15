@@ -104,8 +104,8 @@
 - 본 오라클은 용량 준수 완화 모델(Capacity-Respecting Relaxation)을 채택하여 휴리스틱의 성능을 보수적으로 상한 검증하며, **오프라인 측정 전용 도구로서 실제 런타임 제어 루프는 초경량 다목적 휴리스틱이 담당**합니다 ([`solver/`](solver/), [`research/optimality-gap.md`](research/optimality-gap.md), [ADR-002](docs/adr/ADR-002-sequencing-solver.md) 참조).
 
 #### ③ 자동화 테스트 수트 검증 현황
-- **Kotlin 제어 서비스 수트**: 단위 및 회귀 테스트 **246개 통과 (100% BUILD SUCCESS)** (`mvn -f control/pom.xml test -Dtest="!IngestProjectionTest,!TwinStateQueryTest"`).
-- **Python 보조 컴포넌트 수트**: 에이전트(41개) + 시각화(85개) + 오프라인 솔버 오라클(24개) + 시뮬레이션(85개) = **총 235개 오프라인 테스트 통과** (`pytest`).
+- **Kotlin 제어 서비스 수트**: 단위 및 회귀 테스트 **246개 실행 (244개 통과, 2건 스킵, 100% BUILD SUCCESS)** (`mvn -f control/pom.xml test -Dtest="!IngestProjectionTest,!TwinStateQueryTest"`). ※ 외부 라이브 인프라(Ditto/Kafka) 연동이 필요한 2개 통합 테스트 클래스(`IngestProjectionTest`, `TwinStateQueryTest`)를 제외한 오프라인 테스트 수트입니다(제외 없이 전체 실행 시 248개 중 2건 에러 발생).
+- **Python 보조 컴포넌트 수트**: 에이전트(49개) + 시각화(85개) + 오프라인 솔버 오라클(24개) + 시뮬레이션(85개 통과, 1건 deselect) = **총 243개 오프라인 테스트 통과** (`pytest`).
 
 ---
 
@@ -159,13 +159,13 @@ docker compose up -d
 
 ### 2단계: 제어 서비스 단위 및 회귀 테스트 (Kotlin / Maven)
 ```bash
-# 오프라인 단위 테스트 수트 (246개 테스트 전수 검증)
+# 오프라인 단위/회귀 테스트 수트 (246개 실행: 244 통과, 2 스킵 / 외부 인프라 의존 테스트 2개 제외)
 mvn -f control/pom.xml test -Dtest="!IngestProjectionTest,!TwinStateQueryTest"
 ```
 
 ### 3단계: Python 에이전트 및 오프라인 솔버 테스트
 ```bash
-# 에이전트 모듈 의존성 설치 및 테스트 (41개 오프라인 테스트)
+# 에이전트 모듈 의존성 설치 및 테스트 (49개 오프라인 테스트)
 cd agent && python -m pip install -e .[dev] && python -m pytest -q
 
 # 오프라인 CP-SAT 최적성 갭 오라클 테스트 (24개 테스트)
