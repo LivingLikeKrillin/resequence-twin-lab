@@ -1,49 +1,50 @@
-# ADR-001: Routing Solver Choice — JGraphT Dijkstra (PoC) vs OR-Tools / cuOpt (Production)
+# ADR-001: 라우팅 솔버 선정 — JGraphT Dijkstra (PoC) vs OR-Tools / cuOpt (운영 환경)
 
-> **⚠️ SUPERSEDED / LEGACY (2026-06-17).** This ADR belongs to the original **semiconductor-OHT
-> routing** scenario, which was deliberately re-anchored to the automotive **PBS resequencing**
-> scenario in a later spec revision. PBS uses FIFO lane
-> buffers, not a routing mesh — there is no shortest-path solver in the current build, and the
-> OHT routing/deadlock code is quarantined under `legacy-oht/`. This ADR is retained for history
-> only. The active solver decision for the PBS scenario is **ADR-002** (sequencing); the advisory
-> forecast is **ADR-003**. The agent's RAG corpus intentionally excludes this ADR.
+> **⚠️ 효력 상실 및 레거시 격리 안내 (SUPERSEDED / LEGACY, 2026-06-17)**  
+> 본 아키텍처 결정 기록(ADR)은 프로젝트 초기 기획 단계의 **반도체 OHT(Overhead Hoist Transport) 라우팅 시나리오**에 속하는 문서입니다. 본 랩은 시뮬레이션의 공학적 현실성과 인과성 검증력을 극대화하기 위해 완성차 제조 공정의 **도장 차체 저장소(PBS, Painted Body Store) 재시퀀싱 시나리오로 전략적으로 재정박(Re-anchored)**되었습니다.  
+> PBS 도메인은 메시 네트워크 라우팅이 아닌 다중 FIFO 레인 버퍼 구조를 사용하므로, 현재 정규 빌드에는 최단 경로(Shortest-Path) 솔버가 포함되지 않으며 관련 OHT 라우팅 및 교착 상태(Deadlock) 회피 코드는 [`legacy-oht/`](../../legacy-oht/README.md) 디렉토리에 전면 격리되었습니다.  
+> 본 문서는 엔지니어링 의사결정의 역사적 추적성(Traceability)을 위해 보존되며, 활성화된 PBS 도메인의 핵심 솔버 결정은 **[ADR-002](ADR-002-sequencing-solver.md)**(서열화 솔버) 및 **[ADR-003](ADR-003-scramble-forecast.md)**(서열 꼬임 예측)를 참조하십시오. (AI 자문 에이전트의 RAG 색인 대상에서 본 문서는 의도적으로 제외됩니다.)
 
-**Date:** 2026-06-16
-**Status:** Superseded (legacy OHT scenario — see rev3 re-anchor)
-**Context:** Chunk 2b requires a shortest-path solver for the static and congestion-aware dynamic routing policies.
+- **결정 일자:** 2026-06-16
+- **상태:** 효력 상실 (Superseded — 레거시 OHT 시나리오 격리)
+- **도메인 컨텍스트:** 정적 및 혼잡 인지 동적 라우팅 정책을 위한 최단 경로 탐색 솔버 선정 (초기 마일스톤)
 
-## Decision
+---
 
-The PoC implementation uses **JGraphT `DijkstraShortestPath`** (already a project dependency, no native
-libs, zero friction on Windows/CI) rather than Google OR-Tools Java.
+## 1. 배경 및 당면 과제 (Context)
 
-## Rationale
+초기 반도체 물류(OHT) 라우팅 시뮬레이션 단계에서는 웨이퍼 팹(Fab) 천장 레일 그리드 상에서 차량의 이동 경로를 배정하고 병목 링크의 혼잡도를 동적으로 우회하기 위해 그래프 상의 최단 경로를 고속으로 계산하는 솔버 엔진이 요구되었습니다.
 
-OR-Tools Java (`com.google.ortools:ortools-java`) ships platform-specific native libraries bundled inside
-the JAR. On Windows the setup requires either a matching pre-built artifact or a local CMake build of
-OR-Tools — both add non-trivial friction and risk CI breakage. The *differentiator of this project is the
-congestion-aware dynamic link-weight control policy*, not the underlying shortest-path algorithm. Both
-static and dynamic policies use **the same solver**; only the weight function differs. Shortest-path is
-solver-agnostic here — swapping Dijkstra for OR-Tools changes performance characteristics at scale but
-not the correctness of the benchmark.
+---
 
-## Production / Stack-Fit Intent
+## 2. 의사결정 사항 (Decision)
 
-Production / scale deployment SHOULD use:
+개념 증명(PoC) 단계의 구현체로는 Google OR-Tools Java 대신 **JGraphT의 `DijkstraShortestPath`**를 채택하여 구현하였습니다.
 
-- **Google OR-Tools** (`com.google.ortools:ortools-java`, Apache-2.0) — CPU-based VRP/shortest-path
-  solver; the standard choice for the Java control service.
-- **NVIDIA cuOpt** (Apache-2.0, requires GPU) — fleet routing solver noted in SK hynix fab-asset routing
-  publications; a toggle behind the `RoutingPolicy` interface enables cuOpt when a GPU is present
-  (Chunk 4 stretch goal).
+---
 
-The `RoutingPolicy` interface (`route(state, from, to) -> List<String>`) abstracts the solver choice
-so the benchmark (Chunk 2c) and the agent (Chunk 3) are agnostic to which solver is active.
+## 3. 결정 사유 (Rationale)
 
-## Consequences
+1. **빌드 안정성 및 플랫폼 무결성**:  
+   OR-Tools Java(`com.google.ortools:ortools-java`)는 JAR 내부에 플랫폼 종속적인 네이티브 바이너리(`.dll`, `.so`) JNI 바인딩을 포함합니다. Windows 개발 환경 및 다양한 CI 파이프라인에서 CMake 로컬 빌드나 네이티브 아티팩트 링크 오류로 인한 빌드 중단 위험이 상존했습니다. 반면 JGraphT는 순수 Java 라이브러리로서 네이티브 라이브러리 설정 부담 없이 Windows 및 CI 환경에서 완벽한 빌드 재현성을 보장했습니다.
+2. **핵심 엔지니어링 차별화 요소 집중**:  
+   본 프로젝트의 학술적/기술적 차별성은 기저의 최단 경로 탐색 알고리즘 자체가 아니라 **링크 혼잡도를 인지하여 동적으로 가중치를 재산정하는 제어 정책(`CongestionAwarePolicy`)**에 있습니다. 정적 정책과 동적 정책 모두 동일한 기저 솔버를 공유하며 링크 가중치 함수만 다르게 적용되므로, 솔버 엔진의 교체는 성능 특성(Latency)에 영향을 줄 뿐 벤치마크의 논리적 정확성과 인과 검증에는 영향을 주지 않습니다.
 
-- No native-lib setup pain in the PoC; `mvn test` runs cleanly on any JVM 21+ host.
-- Adding OR-Tools in the future is a one-line pom.xml change + swap `DijkstraShortestPath` call inside
-  `StaticPolicy` / `CongestionAwarePolicy` — the interface and tests do not change.
-- The benchmark result (static vs dynamic KPI delta) is valid regardless of solver; the weight-function
-  difference is what drives the separation.
+---
+
+## 4. 운영 환경 전환 전략 (Production / Stack-Fit Intent)
+
+실제 대규모 팹 물류 운영 환경으로 스케일업할 경우 다음과 같은 엔진으로의 전환을 권장합니다:
+
+- **Google OR-Tools** (`com.google.ortools:ortools-java`, Apache-2.0): CPU 기반의 차량 경로 문제(VRP) 및 고속 최단 경로 솔버로, Java 기반 제어 서비스의 사실상 표준.
+- **NVIDIA cuOpt** (Apache-2.0, GPU 가속 필요): 대규모 OHT 차량 플릿 라우팅을 위한 가속 솔버로, GPU가 장착된 엣지 서버 환경에서 활성화.
+
+`RoutingPolicy` 인터페이스(`route(state, from, to) -> List<String>`)를 통해 솔버 엔진을 추상화함으로써, 상위 벤치마크 하네스와 제어 계층의 코드 변경 없이 플러그인 형태로 솔버를 교체할 수 있도록 설계되었습니다.
+
+---
+
+## 5. 파급 효과 (Consequences)
+
+- **긍정적 효과**: 네이티브 라이브러리 종속성이 배제되어 JVM 21+ 환경 어디서나 `mvn test`가 100% 안정적으로 통과합니다.
+- **확장성 보장**: 향후 OR-Tools로 전환 시 `pom.xml` 의존성 추가 및 `RoutingPolicy` 내부 구현체 1곳만 수정하면 되며, 인터페이스 계약과 테스트 코드는 불변을 유지합니다.
+- **역사적 의의**: 이후 완성차 도장 버퍼(PBS) 재시퀀싱으로 시나리오가 고도화되면서 라우팅 솔버의 필요성이 소멸하고, 조합 서열화 솔버([ADR-002](ADR-002-sequencing-solver.md))로 아키텍처 의사결정이 계승되었습니다.
