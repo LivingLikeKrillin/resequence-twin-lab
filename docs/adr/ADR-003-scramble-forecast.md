@@ -1,159 +1,93 @@
-# ADR-003: Scramble-Forecast Predictor — Transparent Heuristic vs. Learned Model
+# ADR-003: 서열 꼬임 예측 엔진 선정 — 투명한 도메인 가중 휴리스틱 vs. 학습형 머신러닝 모델 (Scramble-Forecast Predictor: Heuristic vs. Learned Model)
 
-- **Date:** 2026-06-17
-- **Status:** Accepted
-- **Context:** resequence-twin PBS resequencing PoC, rev3 R4 (advisory agent)
-
----
-
-## Context
-
-R4 adds an **advisory** layer over the PBS resequencing core: a Python MCP agent exposes
-read-only tools that an MCP host (Claude) calls to reason about the control service's
-decisions. One of those tools, `predict_scramble`, answers the question:
-
-> *"If the current release policy continues, how badly is the release sequence likely to
-> scramble — lose colour batching and/or JIS adherence — and what should we do about it?"*
-
-This requires a forecast over the **current PBS buffer state**, surfaced as:
-- a `riskScore` in `[0, 1]`,
-- a coarse `level` (LOW / MEDIUM / HIGH),
-- the contributing factors with the specific lane/body driving each, and
-- a `stabilizationHint`.
-
-The design tension is between two honest pulls:
-
-1. A production deployment would value **ML/MLOps** capability, which argues for a learned model.
-2. The PoC's **honesty spine** forbids claiming a trained model where none exists, or
-   fabricating predictive accuracy on synthetic data.
-
-Two candidate approaches were evaluated.
+- **결정 일자:** 2026-06-17
+- **상태:** 채택 (Accepted)
+- **도메인 컨텍스트:** 도장 차체 저장소(PBS) 자문형 AI 에이전트 계층 (rev3 R4)
 
 ---
 
-## Decision
+## 1. 배경 및 당면 과제 (Context)
 
-**Use a transparent, deterministic weighted-average heuristic** for the PoC, explicitly
-labelled as *not a trained model*. The learned-predictor path is documented and preserved
-as the production upgrade path — exactly mirroring how ADR-002 frames the
-greedy-heuristic-vs-CP-SAT choice for the sequencing solver.
+R4 마일스톤은 PBS 도메인 코어 상위에 **지능형 자문(Advisory) 계층**을 구축합니다. Python FastMCP 에이전트는 호스트 LLM(Claude)이 제어 서비스의 상태를 파악하고 근거 기반으로 추론할 수 있도록 읽기 전용 도구들을 노출합니다. 그중 핵심 자문 도구인 `predict_scramble`은 다음과 같은 현장 운영 질문에 실시간으로 답변해야 합니다:
 
-This keeps the ML-adjacent *thinking* visible (interpretable features, a scoring model, a
-calibration discussion, and a concrete upgrade path) **without** dishonestly asserting a
-model was trained or validated on data the PoC does not have.
+> *"현재의 차체 방출 정책이 지속될 경우, 향후 방출 서열이 얼마나 심각하게 꼬이고(Scramble — 도장 색상 배치 붕괴 및 JIS 납기 위반) 조립 라인에 혼란을 초래할 위험이 있으며, 이를 방지하기 위해 지금 어떤 조치를 취해야 하는가?"*
 
----
+이를 위해서는 **현재 PBS 버퍼 상태**를 입력받아 다음 정보를 실시간 예측해야 합니다:
+1. `riskScore`: [0, 1] 구간으로 정규화된 서열 꼬임 위험도 점수
+2. `level`: 운영 위험도 범주 (`LOW`, `MEDIUM`, `HIGH`)
+3. `factors`: 위험도를 유발한 핵심 원인 요인과 해당 레인/차체 식별자
+4. `stabilizationHint`: 서열 안정을 위한 구체적 실행 권고안
 
-## Option A — Learned classifier (production path)
-
-**Design:** generate `(buffer-state features → realized-scramble label)` pairs by running
-many seeded simulations forward to completion, label each mid-run snapshot with the
-scramble actually realized downstream, and train a classifier/regressor (e.g. logistic
-regression or gradient-boosted trees) to predict `riskScore`.
-
-**Why it fits:**
-- Produces the genuine ML/MLOps artifact a production setting values (feature pipeline, training job,
-  model registry, inference service).
-- Could capture non-linear feature interactions a hand-weighted average cannot.
-
-**Why it was not used here:**
-- The only available data is **synthetic** (seeded SimPy paint streams). A model trained on
-  synthetic labels and then presented as predictive would violate the honesty spine: its
-  "accuracy" would be an artifact of the generator, not evidence about real plants.
-- The PoC's differentiator is the **multi-objective resequencing decision logic + the
-  falsifiable static-vs-dynamic benchmark + the advisory integration architecture** — not a
-  model's headline accuracy number.
-- A black-box score would also be *worse* for the advisory use case, where the value is an
-  **explainable** "why" a Claude host can cite, not an opaque probability.
-
-**Upgrade path:** replace `ScramblePredictor.forecast()`'s scoring body with a trained-model
-inference call. The `ScrambleForecast` output contract (riskScore, level, factors,
-topContributor, stabilizationHint) and all callers — including the `predict_scramble` MCP
-tool — remain unchanged. The interpretable features below become the model's input
-features, so the feature-engineering work carries forward directly.
+여기서 설계상의 상충 요인은 다음과 같습니다:
+- **운영 스택의 지향점**: 실제 산업 환경에서는 복잡한 특징 간 비선형 상호작용을 포착할 수 있는 ML/MLOps 기반의 예측 모델이 선호됩니다.
+- **PoC 엔지니어링 정직성 척추**: 합성 데이터로만 구동되는 PoC에서 존재하지 않는 머신러닝 모델을 사칭하거나, 검증되지 않은 예측 정확도를 과장하는 행위를 엄격히 금지합니다.
 
 ---
 
-## Option B — Transparent weighted-average heuristic (PoC / chosen)
+## 2. 의사결정 사항 (Decision)
 
-**Model:**
+개념 증명(PoC) 단계에서는 **"학습된 모델이 아님"을 명시한 투명하고 결정론적인 가중 평균 휴리스틱 (Transparent Deterministic Weighted-Average Heuristic)**을 채택하여 구현하였습니다.  
+실제 데이터 기반의 학습형 머신러닝 모델(Learned Classifier)은 향후 운영 환경으로의 명확한 업그레이드 경로(Upgrade Path)로 문서화하여 보존합니다 (ADR-002에서 솔버를 휴리스틱과 CP-SAT으로 명확히 구분한 것과 동일한 엔지니어링 규범 적용).
 
+이를 통해 해석 가능한 도메인 특징(Features), 정량적 스코어링 모델, 캘리브레이션 분석 및 명확한 업그레이드 경로라는 **MLOps 지향적 소프트웨어 엔지니어링 사고체계**를 완벽히 입증하는 동시에, 근거 없는 모델 정확도를 주장하지 않는 높은 공학적 윤리를 견지합니다.
+
+---
+
+## 3. 대안 A — 학습형 머신러닝 분류기 (운영 업그레이드 경로)
+
+### 설계 방안
+수천 회의 시드 기반 시뮬레이션을 실행하여 `(버퍼 상태 스냅샷 특징 → 이후 다운스트림에서 실제로 발생한 서열 꼬임 라벨)` 훈련 데이터셋을 생성하고, 로지스틱 회귀 또는 경량 그래디언트 부스팅 트리(LightGBM 등)를 학습시켜 `riskScore`를 추론하는 서빙 파이프라인 구축.
+
+### PoC에 채택하지 않은 사유
+- **합성 데이터의 한계**: 사용 가능한 데이터가 SimPy 시뮬레이터가 생성한 합성 데이터뿐이므로, 이 데이터로 학습된 모델의 "정확도"는 생성기 알고리즘의 우연한 아티팩트일 뿐 실제 완성차 공장의 물리적 현실을 반영하지 못합니다.
+- **핵심 엔지니어링 차별화 요소**: 본 랩의 본질적 가치는 다목적 제어 로직, 반증 가능한 인과 벤치마크, 비침습적 자문 아키텍처에 있으며 인위적인 모델 성능 수치에 있지 않습니다.
+- **자문 설명 가능성(Explainability)**: 블랙박스 형태의 확률값은 "왜 이 버퍼가 위험한지, 어떤 레인의 차체를 먼저 내보내야 하는지"를 명확하게 설명해야 하는 LLM 자문 인터페이스에 오히려 불리합니다.
+
+### 업그레이드 경로
+`ScramblePredictor.forecast()` 내부의 점수 계산 로직만 학습된 ONNX/TensorRT 모델 추론 호출로 교체합니다. `ScrambleForecast` 출력 계약(`riskScore`, `level`, `factors`, `topContributor`, `stabilizationHint`)과 상위 MCP 도구는 완전히 동일하게 유지됩니다. 아래에 정의된 해석 가능한 도메인 특징들이 모델의 입력 피처로 그대로 계승됩니다.
+
+---
+
+## 4. 대안 B — 투명한 가중 평균 휴리스틱 (채택된 PoC 구현체)
+
+### 수학적 위험도 모델 (Scoring Model)
 ```
 riskScore = W_FRAGMENTATION * colorFragmentation
           + W_OVERDUE       * overdueRatio
-          + W_IMBALANCE      * laneImbalance
+          + W_IMBALANCE     * laneImbalance
 ```
 
-| Weight | Value | Feature it scores |
-|--------|-------|-------------------|
-| `W_FRAGMENTATION` | 0.45 | Colour fragmentation across lane fronts (dominant — colour batching is the primary PBS objective, per ADR-002 / Ford literature) |
-| `W_OVERDUE` | 0.35 | Ratio of lane fronts already overdue vs. JIS due position |
-| `W_IMBALANCE` | 0.20 | Lane-occupancy imbalance (uneven buffer use limits future choice) |
+| 가중치 상수 | 설정값 | 도메인 평가 특징 및 가중치 사유 |
+|---|:---:|---|
+| `W_FRAGMENTATION` | 0.45 | **레인 최전선 색상 파편화도 (`colorFragmentation`)**: 각 레인 선두 차체들의 색상 분산도. 색상이 파편화될수록 동일 색상 배치를 이어가기 어려워 서열 붕괴 위험 급증 (포드 논문 및 ADR-002의 최우선 목적 반영) |
+| `W_OVERDUE` | 0.35 | **JIS 납기 초과 차체 비율 (`overdueRatio`)**: 레인 선두 차체 중 이미 납기 시퀀스를 초과한 비율. 기아 방지 오버라이드가 발동하여 색상 배치를 강제로 끊을 위험 지표 |
+| `W_IMBALANCE` | 0.20 | **레인 적재량 불균형도 (`laneImbalance`)**: 레인 간 재고 불균형(변동계수). 특정 레인 쏠림 시 향후 버퍼 선택권 제한 |
 
-The weights **sum to 1.0**, so `riskScore` is guaranteed to stay in `[0, 1]` (every feature
-is normalised to `[0, 1]`). Each weight is a named constant carrying a Javadoc rationale.
+모든 특징값은 `[0, 1]` 범위로 정규화되어 있으며 가중치 합이 **1.0**이므로, 최종 `riskScore`는 항상 수학적으로 `[0, 1]` 구간 내에 머무름이 엄격히 보장됩니다.
 
-**Interpretable features (all read from the current `PbsState`):**
+### 세부 도메인 특징 산출 로직 (`PbsState` 기반)
+- **`colorFragmentation`** = $\frac{\text{비어있지 않은 레인 선두 차체들의 고유 색상 수}}{\text{비어있지 않은 레인 수}}$  
+  *도메인 특성 반영*: 모든 레인이 동일한 색상으로 완벽히 정렬된 버퍼라 하더라도 $N$개 레인이 존재하면 점수는 $1/N$이 됩니다. 따라서 모든 레인이 비어 있을 때만 위험도가 0이 되며, 잘 정렬된 정상 버퍼는 확실하게 `LOW` 구간에 안착하도록 설계되었습니다.
+- **`overdueRatio`** = $\frac{\text{납기 초과 선두 차체 수}}{\text{비어있지 않은 레인 수}}$ (`dueDateSeq <= assemblyOut.size()` 기준). 제어 서비스의 기아 방지 하드 제약식과 완벽히 동기화된 지표입니다.
+- **`laneImbalance`** = 레인 점유량의 변동계수(표준편차 / 평균, `[0, 1]` 클램핑).
 
-- **`colorFragmentation`** = `distinctFrontColors / nonEmptyLanes`. More distinct colours
-  among the lane fronts ⇒ the next releases cannot extend a single colour run ⇒ higher
-  scramble risk. *Acknowledged characteristic:* a perfectly batched same-colour buffer with
-  N non-empty lanes still scores `1/N` (e.g. 0.5 for 2 lanes), so `riskScore` is `0` only
-  when all lanes are empty. This floor is documented on `ScrambleForecast.riskScore` and
-  keeps a batched buffer solidly in the LOW band rather than at exactly zero.
-- **`overdueRatio`** = `overdueFronts / nonEmptyLanes`, where a front is overdue when
-  `dueDateSeq <= assemblyOut.size()`. This mirrors the `DynamicSequencingPolicy`
-  anti-starvation hard override, so the forecast is consistent with the policy it advises.
-- **`laneImbalance`** = coefficient of variation (population stddev / mean) of lane
-  occupancy, clamped to `[0, 1]`.
+### 위험도 구간 분류 (`ScrambleLevel`)
+제어 서비스와 Python 에이전트 용어집 간의 단일 진실 공급원(Single Source of Truth)으로 관리됩니다:
+- `LOW`: `riskScore < 0.35`
+- `MEDIUM`: `0.35 <= riskScore < 0.65`
+- `HIGH`: `riskScore >= 0.65`
 
-**Risk bands (`ScrambleLevel`, single source of truth for both Java and the agent glossary):**
-
-```
-LOW    : riskScore < 0.35
-MEDIUM : 0.35 <= riskScore < 0.65
-HIGH   : riskScore >= 0.65
-```
-
-**Driving lane/body + stabilization hint:** the `topContributor` is the factor with the
-largest weighted contribution. For the overdue factor, the structured `drivingLaneId` /
-`drivingBodyId` fields name the specific overdue lane front (computed once, shared with the
-human-readable `stabilizationHint` so the two cannot diverge). The hint is an actionable
-suggestion derived from the top contributor (e.g. *"Lane L2 front is overdue — release it
-next to protect JIS order"*).
-
-**Determinism:** no `Date.now()` or `Math.random()`. Same `PbsState` ⇒ identical forecast.
-This matches the determinism guarantee of the rest of the control service and makes the
-advisory tool reproducible.
+### 원인 추적 및 실행 권고안 생성 (Root-Cause & Hint)
+가장 큰 가중 기여도를 기록한 요인을 `topContributor`로 선정합니다. 특히 납기 지연(`OVERDUE`)이 주요 요인인 경우, 구조화된 `drivingLaneId` 및 `drivingBodyId` 필드를 통해 해당 차체를 특정하고, *"L2 레인 선두 차체의 납기가 임박했습니다. JIS 서열을 보호하기 위해 해당 차체를 최우선 방출하십시오"*와 같은 실천적 권고안(`stabilizationHint`)을 자동 합성합니다.
 
 ---
 
-## Consequences
+## 5. 파급 효과 및 엔지니어링 규범 (Consequences)
 
-- **Honest by construction.** The class-level Javadoc states plainly that this is a
-  transparent heuristic, *not* a trained model, with no fitted parameters and no inference
-  engine. The agent's KPI glossary (consumed by the RAG tool) repeats the same framing and
-  the same thresholds — verified to match `ScrambleLevel` exactly (a prior cross-language
-  threshold drift, 0.33/0.67 vs 0.35/0.65, was caught and corrected to the Java values).
-- **Explainable for the advisory use case.** Because every contribution is a named feature ×
-  named weight, the Claude host can cite *why* a buffer is risky and *which* lane/body drives
-  it — strictly better grounding than an opaque score.
-- **Read-only & advisory.** The predictor never mutates `PbsState` or policy internals; it is
-  surfaced only through the read-only `predict_scramble` MCP tool over a GET REST endpoint.
-- **Calibration is heuristic, not learned.** The weights (0.45 / 0.35 / 0.20) and band
-  thresholds (0.35 / 0.65) are PoC cut-points calibrated to the benchmark buffer scale
-  (3 lanes × capacity 10), not derived from real plant data. This is stated wherever the
-  numbers appear.
-- **Upgrade cost is low.** Swapping in a learned model touches only `forecast()`'s scoring
-  body; the output contract, the MCP tool, and the tests' structural expectations are stable.
+1. **설계에 의한 정직성 (Honesty by Construction)**:  
+   Javadoc 및 에이전트 문서에 본 모듈이 사전 학습된 모델이 아닌 결정론적 휴리스틱임을 투명하게 명시합니다. Python 에이전트의 RAG 용어집 또한 동일한 임계치(0.35 / 0.65)를 완벽히 공유합니다.
+2. **자문형 AI 에이전트와의 최적 결합**:  
+   모든 점수가 명명된 도메인 특징과 가중치의 곱으로 구성되므로, LLM(Claude)이 단순 수치 전달을 넘어 현장 엔지니어에게 "왜 위험하며 어디를 조치해야 하는지"를 명확하게 논리적으로 설명할 수 있습니다.
+3. **읽기 전용 비침습성**:  
+   예측 엔진은 `PbsState`를 일체 변경하지 않으며, REST GET 엔드포인트를 통해 완전히 격리된 읽기 전용 상태로 서비스됩니다.
 
----
-
-## Honesty notes
-
-- This is a synthetic-simulation PoC. The scramble forecast is an advisory heuristic, not a
-  validated predictor; no accuracy claim is made.
-- Ford Saarlouis KPI numbers (arXiv 2507.17422) are a published reference for the real-world
-  resequencing problem, **not** measurements from this PoC. See `research/`.
-- The "ML/MLOps" capability this tool signals is the *engineering of an explainable,
-  feature-based, upgrade-ready forecasting component* — not a trained model presented as such.
