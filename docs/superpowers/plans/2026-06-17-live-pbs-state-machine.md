@@ -95,7 +95,7 @@ data class LaneUnblocked(
 
 - [ ] **Step 2: Verify the file compiles (no test yet)**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q compile`
+Run: `cd "$REPO_ROOT" && mvn -f control/pom.xml -q compile`
 Expected: BUILD SUCCESS
 
 ---
@@ -150,7 +150,7 @@ sealed interface ProcessResult {
 
 - [ ] **Step 2: Compile**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q compile`
+Run: `cd "$REPO_ROOT" && mvn -f control/pom.xml -q compile`
 Expected: BUILD SUCCESS
 
 ---
@@ -198,7 +198,7 @@ data class LiveSnapshot(
 
 - [ ] **Step 2: Compile**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q compile`
+Run: `cd "$REPO_ROOT" && mvn -f control/pom.xml -q compile`
 Expected: BUILD SUCCESS
 
 ---
@@ -796,7 +796,7 @@ class LivePbsProcessor(lanes: List<Lane>) {
 
 - [ ] **Step 2: Compile**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q compile`
+Run: `cd "$REPO_ROOT" && mvn -f control/pom.xml -q compile`
 Expected: BUILD SUCCESS
 
 ---
@@ -1081,7 +1081,7 @@ class LivePbsProcessorTest {
 
 - [ ] **Step 2: Run tests — expect COMPILE FAILURE (classes don't exist yet)**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -30`
+Run: `cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -30`
 
 - [ ] **Step 3: Create the source files (implement event model, result types, snapshot, processor)**
 
@@ -1093,13 +1093,13 @@ Files to create in order:
 
 - [ ] **Step 4: Run tests until GREEN**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test`
+Run: `cd "$REPO_ROOT" && mvn -f control/pom.xml -q test`
 Expected: All previous 119 tests + new stream tests pass, 0 failures.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add control/src/main/kotlin/com/resequencetwin/control/stream/
 git add control/src/test/kotlin/com/resequencetwin/control/stream/
 git commit -m "feat(stream-1): live event-driven PBS state machine (idempotent, fault-tolerant)"

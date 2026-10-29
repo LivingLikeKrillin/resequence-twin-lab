@@ -24,7 +24,7 @@
 
 Run (paths contain a space + brackets — quote them):
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q test
+cd "$REPO_ROOT/control" && mvn -q test
 ```
 Expected: `BUILD SUCCESS`, record the `Tests run:` total (currently **227**). The control suite must stay green after the Kotlin exporter is added.
 
@@ -107,18 +107,18 @@ solver/**/__pycache__/
 
 Run (bash):
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && py -3.13 -m venv .venv && ./.venv/Scripts/python.exe -m pip install -q -e ".[dev]"
+cd "$REPO_ROOT/solver" && py -3.13 -m venv .venv && ./.venv/Scripts/python.exe -m pip install -q -e ".[dev]"
 ```
 Expected: installs `ortools` + `pytest` (no error). If `py -3.13` is unavailable, use the existing interpreter at `../sim/.venv/Scripts/python.exe -m venv .venv` is NOT correct — instead use `python -m venv .venv`. The OR-Tools py3.13 wheel resolves (confirmed).
 
 - [ ] **Step 3: Run the smoke test**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_smoke.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_smoke.py -v`
 Expected: PASS (1 test) — confirms OR-Tools CP-SAT works in the venv.
 
 - [ ] **Step 4: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "solver/pyproject.toml" "solver/solver/__init__.py" "solver/tests/__init__.py" "solver/tests/test_smoke.py" ".gitignore"
 git commit -m "build(solver): scaffold solver package + OR-Tools venv"
 ```
@@ -164,7 +164,7 @@ def test_load_fixture_rejects_missing_fields(tmp_path):
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_fixture.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_fixture.py -v`
 Expected: FAIL — `solver.fixture` not found.
 
 - [ ] **Step 3: Implement**
@@ -207,12 +207,12 @@ def load_fixture(path: str) -> Instance:
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_fixture.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_fixture.py -v`
 Expected: PASS (2 tests).
 
 - [ ] **Step 5: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "solver/solver/fixture.py" "solver/tests/test_fixture.py"
 git commit -m "feat(solver): typed fixture loader"
 ```
@@ -287,7 +287,7 @@ def test_returns_oracle_result_type():
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_model.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_model.py -v`
 Expected: FAIL — `solver.model` not found.
 
 - [ ] **Step 3: Implement the model**
@@ -402,12 +402,12 @@ def optimal_color_changes(colors: list[str], lane_caps: list[int],
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_model.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_model.py -v`
 Expected: PASS (6 tests). (Each tiny instance solves in well under a second.)
 
 - [ ] **Step 5: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "solver/solver/model.py" "solver/tests/test_model.py"
 git commit -m "feat(solver): capacity-respecting K-FIFO CP-SAT colour-optimum model"
 ```
@@ -474,7 +474,7 @@ def _solver_dir():
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_gap_cli.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_gap_cli.py -v`
 Expected: FAIL — `solver.optimality_gap` not found.
 
 - [ ] **Step 3: Implement**
@@ -541,17 +541,17 @@ if __name__ == "__main__":
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_gap_cli.py -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest tests/test_gap_cli.py -v`
 Expected: PASS (3 tests).
 
 - [ ] **Step 5: Run the whole solver suite**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest -v`
 Expected: PASS (smoke 1 + fixture 2 + model 6 + gap 3 = 12).
 
 - [ ] **Step 6: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "solver/solver/optimality_gap.py" "solver/tests/test_gap_cli.py"
 git commit -m "feat(solver): gap wrapper + CLI"
 ```
@@ -614,7 +614,7 @@ class OptimalityInstanceExporterTest {
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=OptimalityInstanceExporterTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=OptimalityInstanceExporterTest test`
 Expected: FAIL — `OptimalityInstanceExporter` unresolved.
 
 - [ ] **Step 3: Implement**
@@ -659,12 +659,12 @@ object OptimalityInstanceExporter {
 
 - [ ] **Step 4: Run to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=OptimalityInstanceExporterTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=OptimalityInstanceExporterTest test`
 Expected: PASS (2 tests).
 
 - [ ] **Step 5: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "control/src/main/kotlin/com/resequencetwin/control/bench/OptimalityInstanceExporter.kt" "control/src/test/kotlin/com/resequencetwin/control/bench/OptimalityInstanceExporterTest.kt"
 git commit -m "feat(bench): pure optimality-gap instance exporter"
 ```
@@ -717,14 +717,14 @@ class OptimalityFixtureExportTest {
 
 - [ ] **Step 2: Run the generator**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=OptimalityFixtureExportTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=OptimalityFixtureExportTest test`
 Expected: PASS; 5 files written under `solver/fixtures/`.
 
 - [ ] **Step 3: Sanity-check capacity actually binds**
 
 Run the oracle on one fixture and eyeball that the optimum is non-trivial (not 0 or 1):
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m solver.optimality_gap --fixture fixtures/seed-42.json
+cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m solver.optimality_gap --fixture fixtures/seed-42.json
 ```
 Expected: a line like `seed=42 optimal=<O> heuristic=<H> gap=<H-O>` with `gap ≥ 0`. **Capacity-binding
 check:** the optimum must **exceed the free-permutation bound** for that instance — i.e.
@@ -737,7 +737,7 @@ get the instance's distinct-colour count.
 
 - [ ] **Step 4: Commit the fixtures + generator**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "control/src/test/kotlin/com/resequencetwin/control/bench/OptimalityFixtureExportTest.kt" "solver/fixtures/"
 git commit -m "feat(solver): commit capacity-binding instance fixtures (seeds 1,7,42,99,2024)"
 ```
@@ -753,7 +753,7 @@ git commit -m "feat(solver): commit capacity-binding instance fixtures (seeds 1,
 
 Run the oracle on every committed fixture and record the gaps:
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && for f in fixtures/seed-*.json; do ./.venv/Scripts/python.exe -m solver.optimality_gap --fixture "$f"; done
+cd "$REPO_ROOT/solver" && for f in fixtures/seed-*.json; do ./.venv/Scripts/python.exe -m solver.optimality_gap --fixture "$f"; done
 ```
 Record `max(gap)` across seeds. Set `CEILING = max(gap) + 1` (a small slack) and note the observed gaps in
 the commit message (they go into the research note in Task 8).
@@ -799,13 +799,13 @@ def test_fixtures_exist():
 
 - [ ] **Step 3: Run the regression + full solver suite**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest -v`
+Run: `cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest -v`
 Expected: PASS — smoke 1 + fixture 2 + model 6 + gap 3 + regression (2×5 + 1 = 11) = 23. `gap ≥ 0` and
 `gap ≤ CEILING` hold on every seed.
 
 - [ ] **Step 4: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "solver/tests/test_regression.py"
 git commit -m "test(solver): gap>=0 invariant + documented ceiling over fixtures"
 ```
@@ -847,14 +847,14 @@ general optimality or real-plant data.
 
 - [ ] **Step 3: Verify docs reference real artifacts (content check, not just stat)**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && git --no-pager diff -- research/optimality-gap.md docs/adr/ADR-002-sequencing-solver.md`
+Run: `cd "$REPO_ROOT" && git --no-pager diff -- research/optimality-gap.md docs/adr/ADR-002-sequencing-solver.md`
 and confirm the printed content actually contains: a row/line per seed (1, 7, 42, 99, 2024) with numeric
 optimal/heuristic/gap values matching Task 7's measurements; the `CEILING` value from `test_regression.py`;
 and the phrase "conservative upper bound". There must be NO placeholder/`<TODO>`/`<...>` left in either doc.
 
 - [ ] **Step 4: Commit**
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add "docs/adr/ADR-002-sequencing-solver.md" "research/optimality-gap.md"
 git commit -m "docs(cp-sat): ADR-002 offline-oracle update + optimality-gap research note"
 ```
@@ -866,9 +866,9 @@ git commit -m "docs(cp-sat): ADR-002 offline-oracle update + optimality-gap rese
 - [ ] **Step 1: All three suites green**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q test
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/solver" && ./.venv/Scripts/python.exe -m pytest
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/sim" && ./.venv/Scripts/python.exe -m pytest
+cd "$REPO_ROOT/control" && mvn -q test
+cd "$REPO_ROOT/solver" && ./.venv/Scripts/python.exe -m pytest
+cd "$REPO_ROOT/sim" && ./.venv/Scripts/python.exe -m pytest
 ```
 Expected: control `BUILD SUCCESS` (230 = 227 + 3 new); solver 23 passed; sim unchanged (pre-existing
 state — do not regress; the known legacy OHT `test_generator_emits_ordered_moves` failure, if present, is
@@ -878,7 +878,7 @@ unrelated to this work — note it but do not fix here).
 
 Confirm no CP-SAT-as-policy wiring leaked into `control/` production code:
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && git grep -n -i "ortools\|cp_model\|cpsat" -- "control/src/main" || echo "OK: no CP-SAT in control production code (oracle is offline/Python only)"
+cd "$REPO_ROOT" && git grep -n -i "ortools\|cp_model\|cpsat" -- "control/src/main" || echo "OK: no CP-SAT in control production code (oracle is offline/Python only)"
 ```
 Expected: `OK` — the oracle never touches the JVM production policy path.
 

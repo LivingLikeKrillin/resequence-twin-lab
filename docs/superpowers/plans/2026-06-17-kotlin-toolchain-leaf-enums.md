@@ -61,7 +61,7 @@ Add the following after the existing `jackson-databind` dependency:
 
 Run:
 ```
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml validate -q
+cd "$REPO_ROOT" && mvn -f control/pom.xml validate -q
 ```
 Expected: no errors.
 
@@ -173,7 +173,7 @@ Add this after the kotlin-maven-plugin block:
 
 Run:
 ```
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml validate -q
+cd "$REPO_ROOT" && mvn -f control/pom.xml validate -q
 ```
 Expected: exits 0, no error output.
 
@@ -210,7 +210,7 @@ mkdir -p control/src/test/kotlin
 
 Run:
 ```
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test
 ```
 Expected: BUILD SUCCESS, all 97 tests pass (2 skipped). If this fails, the pom changes broke something — fix the pom before continuing.
 
@@ -275,7 +275,7 @@ rm control/src/main/java/com/resequencetwin/control/pbs/ReleaseReason.java
 
 Run:
 ```
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test
 ```
 Expected: BUILD SUCCESS, all 97 tests pass (2 skipped). If compilation fails, check that `ReleaseReason.kt` has exactly the same package and enum constant names.
 
@@ -366,7 +366,7 @@ rm control/src/main/java/com/resequencetwin/control/pbs/ScrambleLevel.java
 
 Run:
 ```
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test
 ```
 Expected: BUILD SUCCESS, all 97 tests pass (2 skipped). If `ScrambleLevel.MEDIUM_THRESHOLD` / `fromRiskScore` can't be found by Java, check `@JvmField` / `@JvmStatic` annotations are present and the companion is inside the enum body (after the last enum constant + semicolon).
 
@@ -382,14 +382,14 @@ Expected: BUILD SUCCESS, all 97 tests pass (2 skipped). If `ScrambleLevel.MEDIUM
 
 Run:
 ```bash
-git -C "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" branch --show-current
+git -C "$REPO_ROOT" branch --show-current
 ```
 Expected: `build/scaffold`
 
 - [ ] **Step 2: Stage all changes**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin"
+cd "$REPO_ROOT"
 git add control/pom.xml
 git add control/src/main/kotlin/com/resequencetwin/control/pbs/ReleaseReason.kt
 git add control/src/main/kotlin/com/resequencetwin/control/pbs/ScrambleLevel.kt
@@ -400,7 +400,7 @@ git rm control/src/main/java/com/resequencetwin/control/pbs/ScrambleLevel.java
 - [ ] **Step 3: Commit**
 
 ```bash
-git -C "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" commit -m "$(cat <<'EOF'
+git -C "$REPO_ROOT" commit -m "$(cat <<'EOF'
 refactor(kotlin-1): toolchain + leaf enums
 
 Add kotlin-maven-plugin joint compilation (Kotlin-first, then Java).
@@ -414,7 +414,7 @@ EOF
 
 Run:
 ```bash
-git -C "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" log --oneline -1
+git -C "$REPO_ROOT" log --oneline -1
 ```
 Report the SHA in the final summary.
 
