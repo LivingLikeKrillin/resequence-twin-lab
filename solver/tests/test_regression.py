@@ -6,7 +6,7 @@ from solver.fixture import load_fixture
 
 CEILING = 3  # max measured gap (2) + 1 slack; documented in research note.
 
-# glob.escape the directory so that the literal "[projects]" in the repo path is
+# glob.escape the directory so that brackets in the checkout path (e.g. "[work]") are
 # not misinterpreted as a glob character class by glob.glob().
 _FIXTURE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _FIX = sorted(glob.glob(os.path.join(glob.escape(_FIXTURE_DIR), "fixtures", "seed-*.json")))

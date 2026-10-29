@@ -205,7 +205,7 @@ class PbsSimRunnerTraceTest {
 - [ ] **Step 2: Run test to confirm it fails (compilation error expected)**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -20
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -20
 ```
 Expected: compilation failure — `runWithTrace`, `Trace`, `Frame` not found.
 
@@ -328,14 +328,14 @@ Read `control/src/main/kotlin/com/resequencetwin/control/pbs/DynamicSequencingPo
 - [ ] **Step 5: Run tests to verify TRACE tests pass (existing tests stay green)**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -30
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -30
 ```
 Expected: all prior 97 tests + 8 new TRACE tests = 105 total, 0 failures.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && git add \
+cd "$REPO_ROOT" && git add \
   control/src/main/kotlin/com/resequencetwin/control/bench/PbsSimRunner.kt \
   control/src/test/kotlin/com/resequencetwin/control/bench/PbsSimRunnerTraceTest.kt && \
 git commit -m "feat(viz-1): add PbsSimRunner.runWithTrace + Trace/Frame types (TDD red→green)"
@@ -419,7 +419,7 @@ data class TrajectoryResponse(
 - [ ] **Step 2: Run tests to confirm no compilation error (nothing new should break)**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -10
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -10
 ```
 Expected: same green count as before.
 
@@ -537,7 +537,7 @@ class PbsTrajectoryService {
 - [ ] **Step 2: Run tests — still green**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -10
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -10
 ```
 
 ---
@@ -612,7 +612,7 @@ Change line 33 in `PbsAdvisoryControllerTest.kt`:
 - [ ] **Step 3: Run tests — all prior tests still green**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -30
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -30
 ```
 Expected: all tests green (no new tests yet from the controller test file).
 
@@ -831,7 +831,7 @@ class PbsTrajectoryControllerTest {
 If running after Task 4 is done (controller wired), the tests should pass immediately. If running before, expect 404. Either way, run to see current state:
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml -q test 2>&1 | tail -30
+cd "$REPO_ROOT" && mvn -f control/pom.xml -q test 2>&1 | tail -30
 ```
 
 - [ ] **Step 3: Fix any issues and run until all tests pass**
@@ -841,7 +841,7 @@ Expected final state: 97 (existing) + 8 (TRACE) + 15 (TRAJ) = 120 total tests, 0
 - [ ] **Step 4: Final verification run**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && mvn -f control/pom.xml test 2>&1 | grep -E "Tests run:|BUILD"
+cd "$REPO_ROOT" && mvn -f control/pom.xml test 2>&1 | grep -E "Tests run:|BUILD"
 ```
 
 Expected: `Tests run: 120, Failures: 0, Errors: 0, Skipped: 2` and `BUILD SUCCESS`.
@@ -849,7 +849,7 @@ Expected: `Tests run: 120, Failures: 0, Errors: 0, Skipped: 2` and `BUILD SUCCES
 - [ ] **Step 5: Commit all remaining files**
 
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && git add \
+cd "$REPO_ROOT" && git add \
   control/src/main/kotlin/com/resequencetwin/control/api/TrajectoryResponse.kt \
   control/src/main/kotlin/com/resequencetwin/control/api/PbsTrajectoryService.kt \
   control/src/main/kotlin/com/resequencetwin/control/api/PbsAdvisoryController.kt \

@@ -27,7 +27,7 @@ The Done criteria reference "existing tests + new, all green". The exact existin
 
 Run (from the repo root; path has spaces + brackets — quote it):
 ```bash
-cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q test
+cd "$REPO_ROOT/control" && mvn -q test
 ```
 Expected: `BUILD SUCCESS`. Record the exact `Tests run:` total (e.g. 195) — this is `BASELINE_N`. Every later "all green" assertion means `BASELINE_N + <new tests this task> ` pass, 0 failures, 0 errors (the 2 pre-existing Docker/Ditto skips remain skipped).
 
@@ -126,7 +126,7 @@ class DriftTypesTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftTypesTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftTypesTest test`
 Expected: FAIL — compilation error, types unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -227,7 +227,7 @@ data class BehavioralDriftFinding(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftTypesTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftTypesTest test`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
@@ -306,7 +306,7 @@ class ConfigDriftDetectorTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=ConfigDriftDetectorTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=ConfigDriftDetectorTest test`
 Expected: FAIL — `ConfigDriftDetector` unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -373,7 +373,7 @@ class ConfigDriftDetector {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=ConfigDriftDetectorTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=ConfigDriftDetectorTest test`
 Expected: PASS (5 tests).
 
 - [ ] **Step 5: Commit**
@@ -460,7 +460,7 @@ class ResidualDriftDetectorTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=ResidualDriftDetectorTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=ResidualDriftDetectorTest test`
 Expected: FAIL — `ResidualDriftDetector` unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -518,7 +518,7 @@ class ResidualDriftDetector(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=ResidualDriftDetectorTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=ResidualDriftDetectorTest test`
 Expected: PASS (5 tests).
 
 - [ ] **Step 5: Commit**
@@ -588,7 +588,7 @@ class SimulatedSourcesTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=SimulatedSourcesTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=SimulatedSourcesTest test`
 Expected: FAIL — ports/adapters unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -658,7 +658,7 @@ class SimulatedTelemetrySource(initial: ObservedKpi) : LiveTelemetrySource {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=SimulatedSourcesTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=SimulatedSourcesTest test`
 Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit**
@@ -721,7 +721,7 @@ class DriftReportTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftReportTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftReportTest test`
 Expected: FAIL — `DriftReport` unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -776,7 +776,7 @@ data class DriftReport(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftReportTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftReportTest test`
 Expected: PASS (2 tests).
 
 - [ ] **Step 5: Commit**
@@ -921,7 +921,7 @@ class DriftMonitorTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftMonitorTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftMonitorTest test`
 Expected: FAIL — `DriftMonitor` unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1038,7 +1038,7 @@ class DriftMonitor(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftMonitorTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftMonitorTest test`
 Expected: PASS (6 tests).
 
 - [ ] **Step 5: Commit**
@@ -1096,7 +1096,7 @@ class DriftMetricsTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftMetricsTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftMetricsTest test`
 Expected: FAIL — `DriftMetrics` unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1137,7 +1137,7 @@ class DriftMetrics(private val monitor: DriftMonitor) : MeterBinder {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftMetricsTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftMetricsTest test`
 Expected: PASS (1 test).
 
 - [ ] **Step 5: Commit**
@@ -1230,7 +1230,7 @@ class DriftControllerTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftControllerTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftControllerTest test`
 Expected: FAIL — `DriftController` / `DriftService` unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1320,11 +1320,11 @@ pbs.drift.source=sim
 
 - [ ] **Step 4: Run the controller test, then the FULL suite**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftControllerTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftControllerTest test`
 Expected: PASS (2 tests).
 
 Then run the full suite to prove `contextLoads` is green with the new Spring beans and the scheduler disabled:
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q test`
+Run: `cd "$REPO_ROOT/control" && mvn -q test`
 Expected: `BUILD SUCCESS`; `Tests run: BASELINE_N + 28` (Tasks 1–8 add 4+5+5+3+2+6+1+2 = 28), 0 failures, 0 errors (pre-existing 2 skips remain).
 
 - [ ] **Step 5: Commit**
@@ -1368,7 +1368,7 @@ In `control/pom.xml` `<dependencies>`, add (verify the latest stable 0.6.x coord
 
 - [ ] **Step 2: Verify the dependency resolves and the build still compiles**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -DskipTests compile`
+Run: `cd "$REPO_ROOT/control" && mvn -q -DskipTests compile`
 Expected: `BUILD SUCCESS` (milo downloaded, nothing else changed).
 
 - [ ] **Step 3: Commit**
@@ -1446,7 +1446,7 @@ class OpcUaSourcesTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=OpcUaSourcesTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=OpcUaSourcesTest test`
 Expected: FAIL — adapters + embedded server helper unresolved.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -1457,7 +1457,7 @@ Implement `OpcUaConfigSource` and `OpcUaTelemetrySource` using milo's `OpcUaClie
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=OpcUaSourcesTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=OpcUaSourcesTest test`
 Expected: PASS (2 tests) — or, if the embedded server was deferred to user-run, the tests are `@Disabled` and reported as skipped (document the decision in the commit message).
 
 - [ ] **Step 5: Commit**
@@ -1506,7 +1506,7 @@ class DriftConfigTest {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftConfigTest test`
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftConfigTest test`
 Expected: FAIL — `DriftConfig` has no `opcuaEndpoint` param / no opcua branch.
 
 - [ ] **Step 3: Add the opcua branch**
@@ -1518,8 +1518,8 @@ pbs.drift.opcua.endpoint=opc.tcp://localhost:4840
 
 - [ ] **Step 4: Run the test, then the full suite**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q -Dtest=DriftConfigTest test` → PASS (2 tests).
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q test` → `BUILD SUCCESS`, all green (default `pbs.drift.source=sim`, opcua adapters constructed lazily and never connected in the suite).
+Run: `cd "$REPO_ROOT/control" && mvn -q -Dtest=DriftConfigTest test` → PASS (2 tests).
+Run: `cd "$REPO_ROOT/control" && mvn -q test` → `BUILD SUCCESS`, all green (default `pbs.drift.source=sim`, opcua adapters constructed lazily and never connected in the suite).
 
 - [ ] **Step 5: Commit**
 
@@ -1532,7 +1532,7 @@ git commit -m "feat(drift): select OPC-UA live sources via pbs.drift.source=opcu
 
 **Files:**
 - Modify: `README.md`
-- Modify: memory `C:\Users\Eisen\.claude\projects\C--Users-Eisen-Desktop-Labs\memory\virtual-commissioning-gap.md` (+ index line if needed)
+- Modify: local research notes (outside this repository)
 
 - [ ] **Step 1: Add the drift seam to the README**
 
@@ -1540,7 +1540,7 @@ Add a "Drift seam (S5)" subsection: what it detects (config + behavioral), the h
 
 - [ ] **Step 2: Verify the README renders / no broken references**
 
-Run: `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin" && git diff --stat` and eyeball the README diff.
+Run: `cd "$REPO_ROOT" && git diff --stat` and eyeball the README diff.
 
 - [ ] **Step 3: Update the memory**
 
@@ -1559,7 +1559,7 @@ git commit -m "docs(drift): README drift-seam runbook (offline + OPC-UA user-run
 
 ## Final verification (after the last task)
 
-- [ ] **Full suite green:** `cd "/c/Users/Eisen/Desktop/Labs/[projects] resequence-twin/control" && mvn -q test` → `BUILD SUCCESS`, `Tests run: BASELINE_N + 32` (Chunk 1–2: 28, Chunk 3: 4 — or 28 + 2 with 2 skipped if OPC-UA deferred to user-run), 0 failures / 0 errors, only the 2 pre-existing Docker/Ditto skips.
+- [ ] **Full suite green:** `cd "$REPO_ROOT/control" && mvn -q test` → `BUILD SUCCESS`, `Tests run: BASELINE_N + 32` (Chunk 1–2: 28, Chunk 3: 4 — or 28 + 2 with 2 skipped if OPC-UA deferred to user-run), 0 failures / 0 errors, only the 2 pre-existing Docker/Ditto skips.
 - [ ] **`contextLoads` without Docker:** confirmed by the full suite passing with `pbs.drift.enabled=false`.
 - [ ] **No write-back anywhere:** grep the package for any `set`/`put`/`write` against `LivePbsProcessor` or a controller — there must be none. `git grep -n "processor\." control/src/main/kotlin/com/resequencetwin/control/drift` should show only `.snapshot()`.
 - [ ] **Honesty envelope present:** `/api/drift` response carries `synthetic=true` + disclaimer (covered by `DriftControllerTest`).

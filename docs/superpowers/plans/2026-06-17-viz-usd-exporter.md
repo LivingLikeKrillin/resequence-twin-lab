@@ -78,7 +78,7 @@ Create `viz/tests/__init__.py` — empty file.
 - [ ] **Step 4: Install the package in editable mode (from `viz/` dir)**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 python -m pip install -e .[dev]
 ```
 
@@ -265,7 +265,7 @@ class TestColorMap:
 - [ ] **Step 3: Run tests — expect ImportError (module doesn't exist yet)**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 PYTHONIOENCODING=utf-8 python -m pytest tests/test_helpers.py -v
 ```
 
@@ -617,7 +617,7 @@ def _populate_stage(stage: Usd.Stage, trajectory: dict[str, Any]) -> None:
 - [ ] **Step 5: Run helper tests — expect PASS**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 PYTHONIOENCODING=utf-8 python -m pytest tests/test_helpers.py -v
 ```
 
@@ -894,7 +894,7 @@ class TestBuildStageFile:
 - [ ] **Step 2: Run tests — expect FAIL (stage tests pass, some assertions may fail)**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 PYTHONIOENCODING=utf-8 python -m pytest tests/test_usd_exporter.py -v
 ```
 
@@ -911,7 +911,7 @@ Key areas to watch:
 - [ ] **Step 4: Run full test suite — all green**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 PYTHONIOENCODING=utf-8 python -m pytest -v
 ```
 
@@ -1021,7 +1021,7 @@ if __name__ == "__main__":
 - [ ] **Step 2: Quick smoke test — export fixture to /tmp**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 PYTHONIOENCODING=utf-8 python -c "
 import json, tempfile, os
 from tests.conftest import FIXTURE_TRAJECTORY
@@ -1117,7 +1117,7 @@ This is a **synthetic PoC**.  The trajectory data is procedurally generated (see
 - [ ] **Step 2: Final full test run — confirm all green**
 
 ```bash
-cd "C:/Users/Eisen/Desktop/Labs/[projects] resequence-twin/viz"
+cd "$REPO_ROOT/viz"
 PYTHONIOENCODING=utf-8 python -m pytest -q
 ```
 
